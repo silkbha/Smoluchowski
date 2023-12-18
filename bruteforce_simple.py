@@ -32,8 +32,9 @@ def kernel_cfrag(i,j):
 def kernel_sfrag(i):
     """ Kernel for collisionless (aka "spontaneous") fragmentation of dust grains,
         due to gas friction, temperature, radiation
+        Set to 0 for now == no collisionless fragmentation
     """
-    return 1
+    return 0
 
 def Smoluchowski(dust, dt=1):
     """ Single-step time evolution of the Smoluchowski equation.
@@ -70,7 +71,7 @@ def Smoluchowski(dust, dt=1):
         # Mass loss due to collisionless fragmentation: friction with gas, temperature, radiation
         dndt_i = -kernel_sfrag(i)
         dndt_i1 = 0
-        
+
         for j,(m_j,n_j,v_j) in enumerate(zip(masses,densities,velos)):
             
             # Define relative velocity
@@ -102,9 +103,9 @@ def Smoluchowski(dust, dt=1):
 
 if __name__=="__main__":
     print("\n###################### Input #######################")
-    masses = np.logspace(-5,3,30)
-    densities = np.linspace(0.2,0.5,30)
-    velos = np.linspace(0.5,0.1,30)
+    masses = np.logspace(-5,5,30)
+    densities = np.linspace(0.1,1,30)
+    velos = np.linspace(0.5,0.5,30)
     test = np.array([masses,densities,velos])
     print(test[1])
     
