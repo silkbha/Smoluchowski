@@ -20,9 +20,19 @@ def sum_to_n(n, size=2, limit=None):
             yield [i] + tail
 
 def kernel_coag(i,j):
+    """ Kernel for coagulation of dust grains
+    """
     return 1
 
-def kernel_frag(i,j):
+def kernel_cfrag(i,j):
+    """ Kernel for collisional fragmentation of dust grains
+    """
+    return 1
+
+def kernel_sfrag(i):
+    """ Kernel for collisionless (aka "spontaneous") fragmentation of dust grains,
+        due to gas friction, temperature, radiation
+    """
     return 1
 
 def Smoluchowski(dust, dt=1):
@@ -57,8 +67,10 @@ def Smoluchowski(dust, dt=1):
 
     densities_new = np.zeros([len(masses)])
     for i,(m_i,n_i,v_i) in enumerate(zip(masses,densities,velos)):
-        dndt_i = 0
+        # Mass loss due to collisionless fragmentation: friction with gas, temperature, radiation
+        dndt_i = -kernel_sfrag(i)
         dndt_i1 = 0
+        
         for j,(m_j,n_j,v_j) in enumerate(zip(masses,densities,velos)):
             
             # Define relative velocity
@@ -66,14 +78,12 @@ def Smoluchowski(dust, dt=1):
             #TODO: add to kernel (vrel does nothing right now)
             vrel = np.abs(v_i - v_j)
             
-            # Mass loss due to coagulation
+            # Mass loss due to coagulation into m > m_i grains
             dndt_i -= kernel_coag(i,j)*n_i*n_j
-
-            # Mass gain due to fragmentation of larger grains
-            # (no fragmentation of grains larger than the max size in input array)
+            # Mass gain due to fragmentation of larger grains (no fragmentation of grains larger than max m_j)
             if i+j < len(masses):
                 n_ij = densities[i+j] #n_{i+j}
-                dndt_i += kernel_frag(i,j)*n_ij
+                dndt_i += kernel_cfrag(i,j)*n_ij
             
             # Interactions with smaller grains
             if m_j < m_i:
@@ -81,10 +91,9 @@ def Smoluchowski(dust, dt=1):
                 # Mass gain due to coagulation of smaller grains into grains with m_i
                 dndt_i1 += kernel_coag(i-j,j)*n_i*n_ji
                 # Mass loss due to fragmentation of equal size grains
-                dndt_i1 -= kernel_frag(i-j,j)*n_i
-        
-        # Add dndt to previous n_i(t) for new n_i(t+1)
-        # Factor 0.5 to prevent double counting
+                dndt_i1 -= kernel_cfrag(i-j,j)*n_i
+
+        # Add dndt to previous n_i(t) for new n_i(t+1) (factor 0.5 in i1-term to prevent double counting)
         densities_new[i] = n_i + dndt_i + 0.5*dndt_i1
     
     return densities_new
