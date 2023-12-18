@@ -61,8 +61,10 @@ def Smoluchowski(dust, dt=1):
         dndt_i1 = 0
         for j,(m_j,n_j,v_j) in enumerate(zip(masses,densities,velos)):
             vrel = np.abs(v_i - v_j)
-            n_ij = densities[i+j] #n_{i+j}
-            dndt_i += kernel_coag(i,j)*n_i*n_j-kernel_frag(i,j)*n_ij
+            dndt_i += kernel_coag(i,j)*n_i*n_j
+            if i+j < len(masses):
+                n_ij = densities[i+j] #n_{i+j}
+                dndt_i -= kernel_frag(i,j)*n_ij
             if m_j < m_i:
                 n_ji = densities[i-j] #n_{i-j}
                 dndt_i1 += kernel_coag(i-j,j)*n_i*n_ji-kernel_frag(i-j,j)*n_i
@@ -74,9 +76,9 @@ def Smoluchowski(dust, dt=1):
 
 if __name__=="__main__":
     print("\n###################### Input #######################")
-    masses = [1e-3,1e-2,1e-1,1e0,1e1,1e2,1e3]
-    densities = [0.5,0.5,0.5,0.5,0.5,0.5,0.5]
-    velos = [2,2,2,1,0.5,0.5,0.1]
+    masses = np.logspace(-5,3,30)
+    densities = np.linspace(0.2,0.5,30)
+    velos = np.linspace(0.5,0.1,30)
     test = np.array([masses,densities,velos])
     print(test[1])
     
