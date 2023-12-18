@@ -68,10 +68,13 @@ def Smoluchowski(dust, dt=1):
 
     densities_new = np.zeros([len(masses)])
     for i,(m_i,n_i,v_i) in enumerate(zip(masses,densities,velos)):
+        
         # Mass loss due to collisionless fragmentation: friction with gas, temperature, radiation
         dndt_i = -kernel_sfrag(i)
-        dndt_i1 = 0
 
+        # Collisions between grains i & j
+        dndt_i1 = 0
+        
         for j,(m_j,n_j,v_j) in enumerate(zip(masses,densities,velos)):
             
             # Define relative velocity
