@@ -74,7 +74,7 @@ def Smoluchowski(dust, dt=1):
 
         # Collisions between grains i & j
         dndt_i1 = 0
-        
+
         for j,(m_j,n_j,v_j) in enumerate(zip(masses,densities,velos)):
             
             # Define relative velocity
@@ -101,7 +101,6 @@ def Smoluchowski(dust, dt=1):
         densities_new[i] = n_i + dndt_i + 0.5*dndt_i1
     
     return densities_new
-
 
 
 if __name__=="__main__":
