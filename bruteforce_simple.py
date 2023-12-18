@@ -19,8 +19,11 @@ def sum_to_n(n, size=2, limit=None):
         for tail in sum_to_n(n - i, size - 1, i):
             yield [i] + tail
 
-def kernel():
-    return
+def kernel_coag(i,j):
+    return 0.5
+
+def kernel_frag(i,j):
+    return 0.5
 
 def Smoluchowski(dust, dt=1):
     """ Single-step time evolution of the Smoluchowski equation.
@@ -55,15 +58,15 @@ def Smoluchowski(dust, dt=1):
     densities_new = np.zeros([len(masses)])
     for i,(m_i,n_i,v_i) in enumerate(zip(masses,densities,velos)):
         dndt_i = 0
+        dndt_i1 = 0
         for j,(m_j,n_j,v_j) in enumerate(zip(masses,densities,velos)):
             vrel = np.abs(v_i - v_j)
+            n_ij = densities[i+j] #n_{i+j}
+            dndt_i += kernel_coag(i,j)*n_i*n_j-kernel_frag(i,j)*n_ij
             if m_j < m_i:
-                dndt_i += 0
-            elif m_j > m_i:
-                dndt_i += 0
-            else:
-                dndt_i += 0
-        densities_new[i] = n_i + dndt_i
+                n_ji = densities[i-j] #n_{i-j}
+                dndt_i1 += kernel_coag(i-j,j)*n_i*n_ji-kernel_frag(i-j,j)*n_i
+        densities_new[i] = n_i + dndt_i + 0.5*dndt_i1
     
     return densities_new
 
