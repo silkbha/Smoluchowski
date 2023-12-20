@@ -30,9 +30,9 @@ def kernel_cfrag(i,j):
     return 1
 
 def kernel_sfrag(i):
-    """ Kernel for collisionless (aka "spontaneous") fragmentation of dust grains,
+    """ Kernel for collisionless ("s" = "spontaneous") fragmentation of dust grains,
         due to gas friction, temperature, radiation
-        Set to 0 for now == no collisionless fragmentation
+        Set to 0 for now ==> ignore collisionless fragmentation
     """
     return 0
 
@@ -57,7 +57,7 @@ def Smoluchowski(dust, dt=1):
         - Boundary conditions: coagulation with largest bin, fragmentation with smallest bin?
         - Coagulation/fragmentation kernels
         - Optimization :
-            - Summation scheme: no double counting!
+            - Summation scheme: no double counting! (right now : double counting with factor 0.5 afterward)
             - Vectorize where possible
             - numpy (C) vs native Python
     """
@@ -67,15 +67,14 @@ def Smoluchowski(dust, dt=1):
     velos = dust[2]
 
     densities_new = np.zeros([len(St)])
-    for i,(m_i,n_i,v_i) in enumerate(zip(St,densities,velos)):
+    for i,(s_i,n_i,v_i) in enumerate(zip(St,densities,velos)):
         
         # Mass loss due to collisionless fragmentation: friction with gas, temperature, radiation
-        dndt_i = -kernel_sfrag(i)
+        dndt_i = -n_i * kernel_sfrag(i)
 
         # Collisions between grains i & j
         dndt_i1 = 0
-
-        for j,(m_j,n_j,v_j) in enumerate(zip(St,densities,velos)):
+        for j,(s_j,n_j,v_j) in enumerate(zip(St,densities,velos)):
             
             # Define relative velocity
             #TODO: incorporate 3D relative velocity
@@ -83,19 +82,19 @@ def Smoluchowski(dust, dt=1):
             vrel = np.abs(v_i - v_j)
             
             # Mass loss due to coagulation into m > m_i grains
-            dndt_i -= kernel_coag(i,j)*n_i*n_j
+            dndt_i -= n_i*n_j * kernel_coag(i,j)
             # Mass gain due to fragmentation of larger grains (no fragmentation of grains larger than max m_j)
             if i+j < len(St):
                 n_ij = densities[i+j] #n_{i+j}
-                dndt_i += kernel_cfrag(i,j)*n_ij
-            
+                dndt_i += n_ij * kernel_cfrag(i,j)
+             
             # Interactions with smaller grains
-            if m_j < m_i:
+            if s_j < s_i:
                 n_ji = densities[i-j] #n_{i-j}
                 # Mass gain due to coagulation of smaller grains into grains with m_i
-                dndt_i1 += kernel_coag(i-j,j)*n_i*n_ji
+                dndt_i1 += n_i*n_ji * kernel_coag(i-j,j)
                 # Mass loss due to fragmentation of equal size grains
-                dndt_i1 -= kernel_cfrag(i-j,j)*n_i
+                dndt_i1 -= n_i * kernel_cfrag(i-j,j)
 
         # Add dndt to previous n_i(t) for new n_i(t+1) (factor 0.5 in i1-term to prevent double counting)
         densities_new[i] = n_i + dndt_i + 0.5*dndt_i1
@@ -105,7 +104,7 @@ def Smoluchowski(dust, dt=1):
 
 if __name__=="__main__":
     print("\n###################### Input #######################")
-    St = np.logspace(-5,5,30)
+    St = np.logspace(-5,1,30)
     densities = np.linspace(0.1,1,30)
     velos = np.linspace(0.5,0.5,30)
     test = np.array([St,densities,velos])
