@@ -1,13 +1,13 @@
 """
-    Numerical "brute-force" implementation of the Smoluchowski equation for coagulation and fragmentation of colliding solid particles.
+    Numerical "brute-force" implementation of the Smoluchowski-like equation for coagulation and fragmentation of colliding solid particles.
     
 """
 
 import numpy as np
 
 def sum_to_n(n, size=2, limit=None):
-    """Produce all lists of `size` positive integers in decreasing order
-    that add up to `n`."""
+    """Produce all lists of 'size' positive integers in decreasing order that add up to n.
+    """
     if size == 1:
         yield [n]
         return
@@ -20,18 +20,18 @@ def sum_to_n(n, size=2, limit=None):
             yield [i] + tail
 
 def kernel_coag(i,j):
-    """ Kernel for coagulation of dust grains
+    """ Kernel for coagulation of dust grains.
     """
     return 1
 
 def kernel_cfrag(i,j):
-    """ Kernel for collisional fragmentation of dust grains
+    """ Kernel for collisional fragmentation of dust grains.
     """
     return 1
 
-def kernel_sfrag(i):
-    """ Kernel for collisionless ("s" = "spontaneous") fragmentation of dust grains,
-        due to gas friction, temperature, radiation
+def kernel_lfrag(i):
+    """ Kernel for collisionless (i.e. linear) fragmentation of dust grains,
+        due to e.g. gas friction, temperature, radiation.
         Set to 0 for now ==> ignore collisionless fragmentation
     """
     return 0
@@ -69,8 +69,8 @@ def Smoluchowski(dust, dt=1):
     densities_new = np.zeros([len(St)])
     for i,(s_i,n_i,v_i) in enumerate(zip(St,densities,velos)):
         
-        # Mass loss due to collisionless fragmentation: friction with gas, temperature, radiation
-        dndt_i = -n_i * kernel_sfrag(i)
+        # Mass loss due to linear fragmentation: friction with gas, temperature, radiation
+        dndt_i = -n_i * kernel_lfrag(i)
 
         # Collisions between grains i & j
         dndt_i1 = 0
