@@ -19,6 +19,13 @@ def sum_to_n(n, size=2, limit=None):
         for tail in sum_to_n(n - i, size - 1, i):
             yield [i] + tail
 
+def v_brown(i,j):
+    """ Brownian motion component to be added to relative particle velocities.
+        Allows for treatment of collisions between same-sized particles
+        (otherwise their relative velocities would be zero -> no collisions -> no coagulation/fragmentation).
+    """
+    return 0
+
 def kernel_coag(i,j):
     """ Kernel for coagulation of dust grains.
     """
@@ -77,10 +84,11 @@ def Smoluchowski(dust, dt=1):
         for j,(s_j,n_j,v_j) in enumerate(zip(St,densities,velos)):
             
             # Define relative velocity
-            #TODO: incorporate 3D relative velocity
             #TODO: add to kernel (vrel does nothing right now)
-            vrel = np.abs(v_i - v_j)
-            
+            #TODO: incorporate 3D relative velocity
+            # vrel = np.linalg.norm(v_i - v_j) + v_brown(s_i,s_j)
+            vrel = np.abs(v_i - v_j) + v_brown(s_i,s_j)
+
             # Mass loss due to coagulation into m > m_i grains
             dndt_i -= n_i*n_j * kernel_coag(i,j)
             # Mass gain due to fragmentation of larger grains (no fragmentation of grains larger than max m_j)
