@@ -9,6 +9,8 @@ def vrel_bm(m_i,m_j,T_gas):
     k_B = 1.380649e-16 # Boltzmann constant in erg/K
     return np.sqrt( (8 * (m_i+m_j) * k_B * T_gas) / (np.pi*m_i*m_j) )
 
+
+
 def St_to_r(St,rho_gas,T_gas,rho_dust,Omega_K):
     """ Converts particle Stokes number to absolute particle size.
         For now only in Epstein regime. (TODO add Stokes regime later?)
@@ -21,10 +23,14 @@ def St_to_r(St,rho_gas,T_gas,rho_dust,Omega_K):
     
     return St * rho_gas * v_th / (Omega_K * rho_dust)
 
+
+
 def sigma(r_i,r_j):
     """ Collisional cross section.
     """
     return np.pi * (r_i+r_j)**2
+
+
 
 def C(masses,i,j,k):
     
@@ -45,6 +51,7 @@ def C(masses,i,j,k):
         return 1-epsilon
     else:
         return 0
+
 
 
 #################
