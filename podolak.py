@@ -4,15 +4,12 @@ def St_to_r(St,rho_gas,T_gas,rho_dust,Omega_K):
     """ Converts particle Stokes number to absolute particle size.
         For now only in Epstein regime. (TODO add Stokes regime later?)
     """
-
     # Thermal velocity of gas (assuming 100% Hydrogen) in cm/s.
     k_B = 1.380649e-16 # Boltzmann constant in erg/K
     m_p = 1.6726219236951e-24 # Proton mass in g
     v_th = np.sqrt( (8 * k_B * T_gas) / (np.pi * 1 * m_p) )
-    
+    # Particle size.
     return St * rho_gas * v_th / (Omega_K * rho_dust)
-
-
 
 def vrel_bm(m_i,m_j,T_gas):
     """ Brownian motion component to be added to relative particle velocities.
@@ -23,8 +20,6 @@ def vrel_bm(m_i,m_j,T_gas):
     k_B = 1.380649e-16 # Boltzmann constant in erg/K
     return np.sqrt( (8 * (m_i+m_j) * k_B * T_gas) / (np.pi*m_i*m_j) )
 
-
-
 def sigma(r_i,r_j):
     """ Collisional cross section.
     """
@@ -32,25 +27,33 @@ def sigma(r_i,r_j):
 
 
 
+def find_nearest():
+    """ TODO
+    """
+    return
+
 def C(masses,i,j,k):
     
     m_i = masses[i]
     m_j = masses[j]
     m_k = masses[k]
 
-    # TODO nearest-neighbor binning for m & n
-    m_n = 0
-    m_m = 0
+    m_s = m_i + m_j
+    m = 0 # Nearest bin m_m < m_s TODO
+    n = 0 # Nearest bin m_n > m_s TODO
 
-    epsilon = (m_n - (m_i+m_j)) / (m_n - m_m)
-
-    # TODO fix placeholder conditions in if-statements
-    if True:
-        return epsilon
-    elif False:
-        return 1-epsilon
-    else:
+    if not (k == m or k == n):
         return 0
+    else:
+        m_m = masses[m]
+        m_n = masses[n]
+        epsilon = (m_n - (m_s)) / (m_n - m_m)
+        if k == m:
+            return epsilon
+        elif k == n:
+            return 1 - epsilon
+        else:
+            raise ValueError("Error computing nearest mass bins!")
 
 
 
@@ -62,7 +65,7 @@ def podolak(dustinfo,duststate,gasstate):
         Source: Brauer et al. 2008 (A&A 480, 859-877), Appendix A.1.
     
         Input:
-            - dustinfo  = 2D array containing time-invariant information on dust size bins.
+            - dustinfo  = !SORTED! 2D array containing time-invariant information on dust size bins.
                 - row 1/2 : Stokes number corresponding to each bin
                 - row 2/2 : particle mass corresponding to each bin (easier to store than to compute)
             - duststate = 2D array containing current state information of dust at time t0.
