@@ -1,30 +1,25 @@
 import numpy as np
 
-def vrel_bm(m_i,m_j,T_gas,units="cgs"):
+def vrel_bm(m_i,m_j,T_gas):
     """ Brownian motion component to be added to relative particle velocities.
         Source: Birnstiel et al. 2010 (A&A 513, A79), Eq. 44.
         Allows for treatment of collisions between same-sized particles, i.e. m_i == m_j.
         Otherwise, their relative velocities would always be zero -> no collisions -> no coagulation/fragmentation.
-        Two options for units:
-            - CGS : Input masses in g.
-            - SI  : Input masses in kg.
     """
-    
-    if units == "cgs":
-        k_B = 1.380649e-16 # Boltzmann constant in CGS units (erg/K)
-    elif units == "si":
-        k_B = 1.380649e-23 # Boltzmann constant in SI units (J/K)
-    else:
-        raise ValueError("Units must be CGS or SI.")
-    
+    k_B = 1.380649e-16 # Boltzmann constant in erg/K
     return np.sqrt( (8 * (m_i+m_j) * k_B * T_gas) / (np.pi*m_i*m_j) )
 
-def St_to_a(St):
+def St_to_r(St,rho_gas,T_gas,rho_dust,Omega_K):
     """ Converts particle Stokes number to absolute particle size.
+        For now only in Epstein regime. (TODO add Stokes regime later?)
     """
-    # For now only in Epstein regime. (TODO add Stokes regime later?)
+
+    # Thermal velocity of gas (assuming 100% Hydrogen) in cm/s.
+    k_B = 1.380649e-16 # Boltzmann constant in erg/K
+    m_p = 1.6726219236951e-24 # Proton mass in g
+    v_th = np.sqrt( (8 * k_B * T_gas) / (np.pi * 1 * m_p) )
     
-    return 0
+    return St * rho_gas * v_th / (Omega_K * rho_dust)
 
 def sigma(r_i,r_j):
     """ Collisional cross section.
@@ -79,31 +74,33 @@ def podolak(dustinfo,duststate,gasstate):
     
     # Check if input dust info & state arrays are correctly given.
     if dustinfo.shape != duststate.shape:
-        raise ValueError("Dust info and state arrays must contain the same number of bins.")
+        raise ValueError("Dust info and state arrays must contain the same number of bins!")
 
     ########################################################################################
     # Dust info
-    St = dustinfo[0]
+    Stokes = dustinfo[0]
     masses = dustinfo[1]
 
     # Dust state
-    densities = duststate[0] # number density
+    densities = duststate[0]
     velos = duststate[1]
     Omega_K = duststate[2]
     
     # Gas state
-    n_gas = gasstate[0]
-    v_gas = gasstate[1]
-    T_gas = gasstate[2]
-    n_dust = gasstate[3]
+    rho_gas = gasstate[0]       # single value
+    v_gas = gasstate[1]         # single value
+    T_gas = gasstate[2]         # single value
+    rho_dust = gasstate[3]      # single value
     ########################################################################################
 
     # Create array of real particle sizes.
-    sizes = np.zeros(len(St))
+    sizes = np.zeros(len(Stokes))
+    for x,(St,w_K) in enumerate(zip(Stokes,Omega_K)):
+        sizes[x] = St_to_r(St,rho_gas,T_gas,rho_dust,w_K)
 
     # Calculate evolved size distribution.
     densities_new = np.zeros(len(densities))
-    for k,(r_k,m_k,n_k,v_k) in enumerate(zip(St,masses,densities,velos)):
+    for k,(r_k,m_k,n_k,v_k) in enumerate(zip(sizes,masses,densities,velos)):
 
         dndt_gain = 0
         dndt_loss = 0
