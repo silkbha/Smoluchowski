@@ -1,16 +1,5 @@
 import numpy as np
 
-def vrel_bm(m_i,m_j,T_gas):
-    """ Brownian motion component to be added to relative particle velocities.
-        Source: Birnstiel et al. 2010 (A&A 513, A79), Eq. 44.
-        Allows for treatment of collisions between same-sized particles, i.e. m_i == m_j.
-        Otherwise, their relative velocities would always be zero -> no collisions -> no coagulation/fragmentation.
-    """
-    k_B = 1.380649e-16 # Boltzmann constant in erg/K
-    return np.sqrt( (8 * (m_i+m_j) * k_B * T_gas) / (np.pi*m_i*m_j) )
-
-
-
 def St_to_r(St,rho_gas,T_gas,rho_dust,Omega_K):
     """ Converts particle Stokes number to absolute particle size.
         For now only in Epstein regime. (TODO add Stokes regime later?)
@@ -22,6 +11,17 @@ def St_to_r(St,rho_gas,T_gas,rho_dust,Omega_K):
     v_th = np.sqrt( (8 * k_B * T_gas) / (np.pi * 1 * m_p) )
     
     return St * rho_gas * v_th / (Omega_K * rho_dust)
+
+
+
+def vrel_bm(m_i,m_j,T_gas):
+    """ Brownian motion component to be added to relative particle velocities.
+        Source: Birnstiel et al. 2010 (A&A 513, A79), Eq. 44.
+        Allows for treatment of collisions between same-sized particles, i.e. m_i == m_j.
+        Otherwise, their relative velocities would always be zero -> no collisions -> no coagulation/fragmentation.
+    """
+    k_B = 1.380649e-16 # Boltzmann constant in erg/K
+    return np.sqrt( (8 * (m_i+m_j) * k_B * T_gas) / (np.pi*m_i*m_j) )
 
 
 
@@ -114,6 +114,7 @@ def podolak(dustinfo,duststate,gasstate):
         for i,(r_i,m_i,n_i,v_i) in enumerate(zip(sizes,masses,densities,velos)):
 
             # Define relative velocity with added Browninan motion term.
+            # TODO velocities in 3 dimensions.
             vrel_ik = np.abs(v_k-v_i) + vrel_bm(m_k,m_i,T_gas)
 
             # Mass loss due to coagulation
