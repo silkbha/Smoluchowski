@@ -51,7 +51,7 @@ def C(masses,i,j,k):
         return 0
 
     m_m = masses[m]
-    m_n = masses[n]
+    m_n = masses[n] # TODO if m=k and k is last index, then n out of bounds!
     epsilon = (m_n - m_s) / (m_n - m_m)
 
     if k == m: # i.e. if m_k = m_m
@@ -120,6 +120,8 @@ def podolak(dustinfo,duststate,gasstate):
 
         dndt_gain = 0
         dndt_loss = 0
+
+        # TODO Over what range i & j? To avoid edge cases...
         for i,(r_i,m_i,n_i,v_i) in enumerate(zip(sizes,masses,densities,velos)):
 
             # Define relative velocity with added Browninan motion term.
