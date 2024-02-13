@@ -4,11 +4,12 @@ def St_to_r(St,rho_gas,T_gas,rho_dust,Omega_K):
     """ Converts particle Stokes number to absolute particle size.
         For now only in Epstein regime. (TODO add Stokes regime later?)
     """
-    # Thermal velocity of gas (assuming 100% Hydrogen) in cm/s.
+    # Calculate thermal velocity of gas in cm/s.
     k_B = 1.380649e-16 # Boltzmann constant in erg/K
     m_p = 1.6726219236951e-24 # Proton mass in g
-    v_th = np.sqrt( (8 * k_B * T_gas) / (np.pi * 1 * m_p) )
-    # Particle size.
+    v_th = np.sqrt( (8 * k_B * T_gas) / (np.pi * 1 * m_p) ) # 1 = mean molecular weight (assumes 100% HI).
+    
+    # Calculate particle size.
     return St * rho_gas * v_th / (Omega_K * rho_dust)
 
 def vrel_bm(m_i,m_j,T_gas):
@@ -33,6 +34,8 @@ def find_nearest():
     return
 
 def C(masses,i,j,k):
+    """
+    """
     
     m_i = masses[i]
     m_j = masses[j]
@@ -42,6 +45,7 @@ def C(masses,i,j,k):
     m = 0 # Nearest bin m_m < m_s TODO
     n = 0 # Nearest bin m_n > m_s TODO
 
+    # If k is not 
     if not (k == m or k == n):
         return 0
     else:
@@ -53,7 +57,7 @@ def C(masses,i,j,k):
         elif k == n:
             return 1 - epsilon
         else:
-            raise ValueError("Error computing nearest mass bins!")
+            raise ValueError("Error computing nearest neighboring mass bins!")
 
 
 
@@ -126,7 +130,10 @@ def podolak(dustinfo,duststate,gasstate):
             # Mass gain due to coagulation 
             for j,(r_j,m_j,n_j,v_j) in enumerate(zip(sizes,masses,densities,velos)):
                 vrel_ij = np.abs(v_j-v_i) + vrel_bm(m_j,m_i)
-                dndt_gain += n_i*n_j * sigma(r_i,r_j) * vrel_ij * C(masses,i,j,k)
+                C_ijk = C(masses,i,j,k)
+                if C_ijk == 0:
+                    continue # dndt_gain += 0
+                dndt_gain += n_i*n_j * sigma(r_i,r_j) * vrel_ij * C_ijk
         
         # Get new n_k(t+1) by adding dndt to previous n_k(t).
         # (with factor 0.5 in gain term to prevent double counting of collisions ij & ji)
@@ -136,4 +143,4 @@ def podolak(dustinfo,duststate,gasstate):
 
 
 if __name__=="__main__":
-    print("Hello")
+    print("Hello There")
