@@ -28,36 +28,38 @@ def sigma(r_i,r_j):
 
 
 
-def find_nearest():
-    """ TODO
+def find_idx_low(array,target):
+    """ Finds the index of the nearest value below a given target value inside a given numpy array.
+        Source: https://stackoverflow.com/questions/67617053/find-nearest-value-above-and-below-a-value-inside-numpy-array
     """
-    return
+    diff = target - array
+    diff[diff < 0] = np.inf
+    idx = diff.argmin()
+    return idx
 
 def C(masses,i,j,k):
-    """
+    """ TODO edge case: what happens when k is last index and m_s >> m_k?
     """
     
-    m_i = masses[i]
-    m_j = masses[j]
-    m_k = masses[k]
-
-    m_s = m_i + m_j
-    m = 0 # Nearest bin m_m < m_s TODO
-    n = 0 # Nearest bin m_n > m_s TODO
-
-    # If k is not 
-    if not (k == m or k == n):
+    m_s = masses[i] + masses[j]
+    
+    # Nearest bins for which m_m < m_s < m_n
+    m = find_idx_low(masses, m_s)
+    n = m + 1
+    
+    if k != m and k != n:
         return 0
+
+    m_m = masses[m]
+    m_n = masses[n]
+    epsilon = (m_n - (m_s)) / (m_n - m_m)
+
+    if k == m: # i.e. if m_k = m_m
+        return epsilon
+    elif k == n:
+        return 1 - epsilon
     else:
-        m_m = masses[m]
-        m_n = masses[n]
-        epsilon = (m_n - (m_s)) / (m_n - m_m)
-        if k == m:
-            return epsilon
-        elif k == n:
-            return 1 - epsilon
-        else:
-            raise ValueError("Error computing nearest neighboring mass bins!")
+        raise ValueError("Error computing nearest neighboring mass bins!")
 
 
 
