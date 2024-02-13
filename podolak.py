@@ -38,7 +38,7 @@ def find_idx_low(array,target):
     return idx
 
 def C(masses,i,j,k):
-    """ TODO edge case: what happens when k is last index and m_s >> m_k?
+    """ TODO edge case: what happens when k is last index? Index n would then be out of bounds...
     """
     
     m_s = masses[i] + masses[j]
@@ -52,7 +52,7 @@ def C(masses,i,j,k):
 
     m_m = masses[m]
     m_n = masses[n]
-    epsilon = (m_n - (m_s)) / (m_n - m_m)
+    epsilon = (m_n - m_s) / (m_n - m_m)
 
     if k == m: # i.e. if m_k = m_m
         return epsilon
