@@ -2,6 +2,7 @@ import numpy as np
 
 def St_to_r(St,rho_gas,T_gas,rho_dust,Omega_K):
     """ Converts particle Stokes number to absolute particle size.
+        Source: C.P. Dullemond slides.
         For now only in Epstein regime. (TODO add Stokes regime later?)
     """
     # Calculate thermal velocity of gas in cm/s.
