@@ -53,7 +53,7 @@ def C(masses,i,j,k):
         return 0
     elif m == k == len(masses)-1:
         # Edge case: index n is out of bounds!
-        return 0 # TODO what to do here s.t. mass is still conserved (e.g. final bin as sink particle?)
+        return 0 # TODO what to do here so mass is still conserved (e.g. final bin as sink particle?)
 
     m_m = masses[m]
     m_n = masses[n]
