@@ -31,7 +31,7 @@ def sigma(r_i,r_j):
 
 def find_idx_low(array,target):
     """ Finds the index of the nearest value below a given target value inside a given numpy array.
-        Source: https://stackoverflow.com/questions/67617053/find-nearest-value-above-and-below-a-value-inside-numpy-array
+        Source: https://stackoverflow.com/questions/67617053/
     """
     diff = target - array
     diff[diff < 0] = np.inf
@@ -89,7 +89,7 @@ def podolak(dustinfo,duststate,gasstate):
                 - row 1/1 : particle number density per size bin
     """
     
-    # Check if input dust info & state arrays are correctly given.
+    # Check if input dust info & state arrays are given correctly.
     if dustinfo.shape != duststate.shape:
         raise ValueError("Dust info and state arrays must contain the same number of bins!")
 
