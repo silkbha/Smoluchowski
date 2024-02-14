@@ -31,7 +31,7 @@ def sigma(r_i,r_j):
 
 
 def find_idx_low(array,target):
-    """ Finds the index of the nearest value below a given target value inside a given numpy array.
+    """ Finds the index of the nearest value below a given target value in an array.
         Source: https://stackoverflow.com/questions/67617053/
     """
     diff = target - array
