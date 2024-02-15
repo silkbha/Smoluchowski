@@ -49,8 +49,8 @@ def C(masses,i,j,k):
     
     # Nearest bins for which m_m < m_s < m_n
     m = find_idx_low(masses, m_s)
-    m_m = masses[m]
     n = m + 1
+    m_m = masses[m]
     
     if k != m and k != n:
         return 0
@@ -120,7 +120,7 @@ def evolve(dustinfo,duststate,gasstate):
 
     # Create (N,1) array of real (absolute) particle sizes.
     sizes = Stokes_to_size(Stokes, rho_gas,T_gas,rho_dust)
-    
+
     ########################################################################################
 
     # Calculate evolved size distribution.
