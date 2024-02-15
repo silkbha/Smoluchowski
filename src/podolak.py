@@ -70,9 +70,10 @@ def C(masses,i,j,k):
 
 
 
-#################
-# Main Function #
-#################
+###############################################################################################################
+#                                              Main Function                                                  #
+###############################################################################################################
+
 def evolve(dustinfo,duststate,gasstate):
     """ Single-step time evolution of the Smoluchowski coagulation equation in 0D using the Podolak algorithm.
         Based on Brauer et al. 2008 (A&A 480, 859-877), Appendix A.1.
@@ -119,8 +120,9 @@ def evolve(dustinfo,duststate,gasstate):
 
     # Create (N,1) array of real (absolute) particle sizes.
     sizes = Stokes_to_size(Stokes, rho_gas,T_gas,rho_dust)
-    ########################################################################################
     
+    ########################################################################################
+
     # Calculate evolved size distribution.
     densities_new = np.zeros(len(densities))
     for k,(r_k,m_k,n_k,v_k) in enumerate(zip(sizes,masses,densities,velos)):
