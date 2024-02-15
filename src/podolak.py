@@ -1,17 +1,20 @@
 import numpy as np
 
-def St_to_r(St,Omega_K, rho_gas,T_gas,rho_dust):
+def St_to_r(St, rho_gas,T_gas,rho_dust):
     """ Converts particle Stokes number to absolute particle size.
         From: C.P. Dullemond slides.
         For now only in Epstein regime. (TODO add Stokes regime later?)
     """
+    
     # Calculate thermal velocity of gas in cm/s.
     k_B = 1.380649e-16 # Boltzmann constant in erg/K
     m_p = 1.6726219236951e-24 # Proton mass in g
     v_th = np.sqrt( (8 * k_B * T_gas) / (np.pi * 1 * m_p) ) # 1 = mean molecular weight (assumes 100% HI).
     
     # Calculate particle size.
+    Omega_K = 1 # Keplerian orbital velocity (always 1 in FARGO shearing box?)
     return St * rho_gas * v_th / (Omega_K * rho_dust)
+
 Stokes_to_size = np.vectorize(St_to_r)
 
 def vrel_bm(m_i,m_j,T_gas):
@@ -42,20 +45,19 @@ def find_idx_low(array,target):
 def C(masses,i,j,k):
     """ 
     """
-    
     m_s = masses[i] + masses[j]
     
     # Nearest bins for which m_m < m_s < m_n
     m = find_idx_low(masses, m_s)
+    m_m = masses[m]
     n = m + 1
     
     if k != m and k != n:
         return 0
-    elif m == k == len(masses)-1:
+    elif k == len(masses)-1 == m:
         # Edge case: index n is out of bounds!
-        return 0 # TODO what to do here so mass is still conserved (e.g. final bin as sink particle?)
+        return m_s / m_m
 
-    m_m = masses[m]
     m_n = masses[n]
     epsilon = (m_n - m_s) / (m_n - m_m)
 
@@ -71,7 +73,7 @@ def C(masses,i,j,k):
 #################
 # Main Function #
 #################
-def podolak(dustinfo,duststate,gasstate):
+def evolve(dustinfo,duststate,gasstate):
     """ Single-step time evolution of the Smoluchowski coagulation equation in 0D using the Podolak algorithm.
         Based on Brauer et al. 2008 (A&A 480, 859-877), Appendix A.1.
     
@@ -79,21 +81,19 @@ def podolak(dustinfo,duststate,gasstate):
             - dustinfo  = Sorted (N,2) array containing time-invariant information on dust size bins.
                 - col 1/2 : Stokes number corresponding to each bin
                 - col 2/2 : particle mass corresponding to each bin (easier to store than to compute)
-            - duststate = (N,5) array containing current state information of dust at time t0.
-                - col 1/3 : particle number density per size bin
-                - col 2/3 : Keplerian orbital frequency per size bin
-                - col 3/3 : particle velocity in x direction per size bin
-                - col 4/5 : particle velocity in y direction per size bin
-                - col 5/5 : particle velocity in z direction per size bin
+            - duststate = (N,4) array containing current state information of dust at time t0.
+                - col 1/4 : particle number density per size bin
+                - col 2/4 : particle velocity in x direction per size bin
+                - col 3/4 : particle velocity in y direction per size bin
+                - col 4/4 : particle velocity in z direction per size bin
             - gasstate  = List containing current state information of gas at time t0.
                 - gas mass density
                 - gas temperature
-                - dust particle mass density
+                - dust monomer mass density
         Output:
             - array of number density distribution at time t0 + dt
                 - col 1/1 : particle number density per size bin
 
-        TODO Omega_K given by Fargo or need to calculate manually here?
         TODO St to r conversion now only in Epstein... add Stokes regime(s) later?
     """
     
@@ -102,7 +102,7 @@ def podolak(dustinfo,duststate,gasstate):
         raise ValueError("Dust info and state arrays must contain the same number of bins!")
 
     ########################################################################################
-    #                                    PREPARE INPUTS                                    #
+    #                                    PREPROCESSING                                     #
     ########################################################################################
     # Dust info
     Stokes = dustinfo[:,0]      # (N,1) array
@@ -110,18 +110,17 @@ def podolak(dustinfo,duststate,gasstate):
 
     # Dust state
     densities = duststate[:,0]  # (N,1) array
-    Omega_K = duststate[:,1]    # (N,1) array
-    velos = duststate[:,2:]     # (N,3) array
+    velos = duststate[:,1:]     # (N,3) array
     
     # Gas state
     rho_gas = gasstate[0]       # single value
-    T_gas = gasstate[1]         # single value
+    T_gas = gasstate[1]         # single value # TODO Fargo gives energy instead(?) -> Convert?
     rho_dust = gasstate[2]      # single value
-    ########################################################################################
 
     # Create (N,1) array of real (absolute) particle sizes.
-    sizes = Stokes_to_size(Stokes,Omega_K, rho_gas,T_gas,rho_dust)
-
+    sizes = Stokes_to_size(Stokes, rho_gas,T_gas,rho_dust)
+    ########################################################################################
+    
     # Calculate evolved size distribution.
     densities_new = np.zeros(len(densities))
     for k,(r_k,m_k,n_k,v_k) in enumerate(zip(sizes,masses,densities,velos)):
