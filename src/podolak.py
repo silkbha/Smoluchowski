@@ -4,15 +4,22 @@ def St_to_r(St, rho_gas,T_gas,rho_dust):
     """ Converts particle Stokes number to absolute particle size.
         From: C.P. Dullemond slides.
         For now only in Epstein regime. (TODO add Stokes regime later?)
+        Inputs : 
+            - St       : Stokes number scalar or array to be converted.
+            - rho_gas  : gas mass density in g/cm3.
+            - T_gas    : gas temperature in K.
+            - rho_dust : dust monomer mass density in g/cm3.
+        Outputs :
+            - Particle sizes in cm.
     """
     
     # Calculate thermal velocity of gas in cm/s.
-    k_B = 1.380649e-16 # Boltzmann constant in erg/K
-    m_p = 1.6726219236951e-24 # Proton mass in g
+    k_B = 1.380649e-16 # Boltzmann constant in erg/K.
+    m_p = 1.6726219236951e-24 # Proton mass in g.
     v_th = np.sqrt( (8 * k_B * T_gas) / (np.pi * 1 * m_p) ) # 1 = mean molecular weight (assumes 100% HI).
     
     # Calculate particle size.
-    Omega_K = 1 # Keplerian orbital velocity (always 1 in FARGO shearing box?)
+    Omega_K = 1 # Keplerian orbital velocity (always 1 in FARGO shearing box?).
     return St * rho_gas * v_th / (Omega_K * rho_dust)
 
 Stokes_to_size = np.vectorize(St_to_r)
@@ -22,12 +29,21 @@ def vrel_bm(m_i,m_j,T_gas):
         Source: Birnstiel et al. 2010 (A&A 513, A79), Eq. 44.
         Allows for treatment of collisions between same-sized particles, i.e. m_i == m_j.
         Otherwise, their relative velocities would always be zero -> no collisions -> no coagulation/fragmentation.
+        Inputs :
+            - m_i,m_j : particle mass in g.
+            - T_gas   : gas temperature in K.
+        Output :
+            - Brownian motion induced relative particle velocity in cm/s.
     """
     k_B = 1.380649e-16 # Boltzmann constant in erg/K
     return np.sqrt( (8 * (m_i+m_j) * k_B * T_gas) / (np.pi*m_i*m_j) )
 
 def sigma(r_i,r_j):
     """ Collisional cross section.
+        Inputs :
+            - r_i,r_j : particle size in cm.
+        Output :
+            - Collisional cross section in cm2.
     """
     return np.pi * (r_i+r_j)**2
 
@@ -43,7 +59,8 @@ def find_idx_low(array,target):
     return idx
 
 def C(masses,i,j,k):
-    """ 
+    """ Calculates coefficient C_ijk for the Podolak coagulation algorithm.
+        From : Brauer et al. 2008 (A&A 480, 859-877), Equation A.5.
     """
     m_s = masses[i] + masses[j]
     
