@@ -4,12 +4,12 @@ def St_to_r(St, rho_gas,T_gas,rho_dust):
     """ Converts particle Stokes number to absolute particle size.
         From: C.P. Dullemond slides.
         For now only in Epstein regime. (TODO add Stokes regime later?)
-        Inputs : 
+        Inputs: 
             - St       : Stokes number(s) to be converted. (scalar or array)
             - rho_gas  : gas mass density in g/cm3.
             - T_gas    : gas temperature in K.
             - rho_dust : dust monomer mass density in g/cm3.
-        Outputs :
+        Outputs:
             - Particle size(s) in cm. (scalar or array)
     """
     
@@ -24,7 +24,7 @@ def St_to_r(St, rho_gas,T_gas,rho_dust):
 
 def vrel_bm(m_i,m_j,T_gas):
     """ Brownian motion component to be added to relative particle velocities.
-        Source: Birnstiel et al. 2010 (A&A 513, A79), Eq. 44.
+        From: Birnstiel et al. 2010 (A&A 513, A79), Eq. 44.
         Allows for treatment of collisions between same-sized particles, i.e. m_i == m_j.
         Otherwise, their relative velocities would always be zero -> no collisions -> no coagulation/fragmentation.
         Inputs :
@@ -38,9 +38,9 @@ def vrel_bm(m_i,m_j,T_gas):
 
 def sigma(r_i,r_j):
     """ Collisional cross section.
-        Inputs :
+        Inputs:
             - r_i,r_j : particle size in cm.
-        Output :
+        Output:
             - Collisional cross section in cm2.
     """
     return np.pi * (r_i+r_j)**2
@@ -49,7 +49,7 @@ def sigma(r_i,r_j):
 
 def find_idx_low(array,target):
     """ Finds the index of the nearest value below a given target value in an array.
-        Source: https://stackoverflow.com/questions/67617053/
+        Based on: https://stackoverflow.com/questions/67617053/
     """
     diff = target - array
     diff[diff < 0] = np.inf
@@ -58,21 +58,21 @@ def find_idx_low(array,target):
 
 def C(masses,i,j,k):
     """ Calculates coefficient C_ijk for the Podolak coagulation algorithm.
-        From : Brauer et al. 2008 (A&A 480, 859-877), Equation A.5.
+        From: Brauer et al. 2008 (A&A 480, 859-877), Equation A.5.
     """
     m_s = masses[i] + masses[j]
     
     # Nearest bins for which m_m < m_s < m_n
     m = find_idx_low(masses, m_s)
     n = m + 1
-    m_m = masses[m]
     
     if k != m and k != n:
         return 0
     elif k == len(masses)-1 == m:
         # Edge case: index n is out of bounds!
-        return m_s / m_m
-
+        return m_s / masses[k]
+    
+    m_m = masses[m]
     m_n = masses[n]
     epsilon = (m_n - m_s) / (m_n - m_m)
 
@@ -91,7 +91,7 @@ def C(masses,i,j,k):
 
 def evolve(dustinfo,duststate,gasstate):
     """ Single-step time evolution of the Smoluchowski coagulation equation in 0D using the Podolak algorithm.
-        Based on Brauer et al. 2008 (A&A 480, 859-877), Appendix A.1.
+        Based on: Brauer et al. 2008 (A&A 480, 859-877), Appendix A.1.
     
         Input:
             - dustinfo  = Sorted (N,2) array containing time-invariant information on dust size bins.
