@@ -12,14 +12,12 @@ def St_to_r(St, rho_gas,T_gas,rho_dust):
         Outputs:
             - Particle size(s) in cm. (scalar or array)
     """
-    
-    # Calculate thermal velocity of gas in cm/s.
+    Omega_K = 1 # Keplerian orbital velocity (always 1 in FARGO shearing box?).
     k_B = 1.380649e-16 # Boltzmann constant in erg/K.
     m_p = 1.6726219236951e-24 # Proton mass in g.
+    # Calculate thermal velocity of gas in cm/s.
     v_th = np.sqrt( (8 * k_B * T_gas) / (np.pi * 1 * m_p) ) # 1 = mean molecular weight (assumes 100% HI).
-    
     # Calculate particle size.
-    Omega_K = 1 # Keplerian orbital velocity (always 1 in FARGO shearing box?).
     return St * rho_gas * v_th / (Omega_K * rho_dust)
 
 def vrel_bm(m_i,m_j,T_gas):
