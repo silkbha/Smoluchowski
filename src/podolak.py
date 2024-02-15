@@ -66,9 +66,9 @@ def C(masses,i,j,k):
     
     if k != m and k != n:
         return 0
-    elif k == len(masses)-1 == m:
+    elif n == len(masses):
         # Edge case: index n is out of bounds!
-        return m_s / masses[k]
+        return m_s / masses[k] # final bin acts as sink particle
     
     m_m = masses[m]
     m_n = masses[n]
