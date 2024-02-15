@@ -5,12 +5,12 @@ def St_to_r(St, rho_gas,T_gas,rho_dust):
         From: C.P. Dullemond slides.
         For now only in Epstein regime. (TODO add Stokes regime later?)
         Inputs : 
-            - St       : Stokes number scalar or array to be converted.
+            - St       : Stokes number(s) to be converted. (scalar or array)
             - rho_gas  : gas mass density in g/cm3.
             - T_gas    : gas temperature in K.
             - rho_dust : dust monomer mass density in g/cm3.
         Outputs :
-            - Particle sizes in cm.
+            - Particle size(s) in cm. (scalar or array)
     """
     
     # Calculate thermal velocity of gas in cm/s.
@@ -21,8 +21,6 @@ def St_to_r(St, rho_gas,T_gas,rho_dust):
     # Calculate particle size.
     Omega_K = 1 # Keplerian orbital velocity (always 1 in FARGO shearing box?).
     return St * rho_gas * v_th / (Omega_K * rho_dust)
-
-Stokes_to_size = np.vectorize(St_to_r)
 
 def vrel_bm(m_i,m_j,T_gas):
     """ Brownian motion component to be added to relative particle velocities.
@@ -136,7 +134,7 @@ def evolve(dustinfo,duststate,gasstate):
     rho_dust = gasstate[2]      # single value
 
     # Create (N,1) array of real (absolute) particle sizes.
-    sizes = Stokes_to_size(Stokes, rho_gas,T_gas,rho_dust)
+    sizes = St_to_r(Stokes, rho_gas,T_gas,rho_dust)
 
     ########################################################################################
 
