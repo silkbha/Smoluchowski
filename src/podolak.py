@@ -92,8 +92,8 @@ def evolve(dustinfo,duststate,gasstate):
         Based on: Brauer et al. 2008 (A&A 480, 859-877), Appendix A.1.
     
         Input:
-            - dustinfo  = Sorted (N,2) array containing time-invariant information on dust size bins.
-                - col 1/2 : Stokes number corresponding to each bin
+            - dustinfo  = Sorted (N,1) array containing time-invariant information on dust size bins.
+                - col 1/1 : Stokes number corresponding to each bin
                 - col 2/2 : particle mass corresponding to each bin (easier to store than to compute)
             - duststate = (N,4) array containing current state information of dust at time t0.
                 - col 1/4 : particle number density per size bin
@@ -107,8 +107,6 @@ def evolve(dustinfo,duststate,gasstate):
         Output:
             - array of number density distribution at time t0 + dt
                 - col 1/1 : particle number density per size bin
-
-        TODO St to r conversion now only in Epstein... add Stokes regime(s) later?
     """
     
     # Check if input dust info & state arrays are given correctly.
@@ -154,7 +152,7 @@ def evolve(dustinfo,duststate,gasstate):
             
             # Mass gain due to coagulation 
             for j,(r_j,m_j,n_j,v_j) in enumerate(zip(sizes,masses,densities,velos)):
-                vrel_ij = np.linalg.norm(v_j-v_i) + vrel_bm(m_j,m_i)
+                vrel_ij = np.linalg.norm(v_j-v_i) + vrel_bm(m_j,m_i,T_gas)
                 C_ijk = C(masses,i,j,k)
                 if C_ijk == 0:
                     continue # dndt_gain += 0
