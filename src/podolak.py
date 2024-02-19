@@ -47,7 +47,7 @@ def sigma(r_i,r_j):
 
 def find_idx_low(array,target):
     """ Finds the index of the nearest value below a given target value in an array.
-        Based on: https://stackoverflow.com/questions/67617053/
+        Based on: https://stackoverflow.com/questions/67617053/ .
     """
     diff = target - array
     diff[diff < 0] = np.inf
@@ -144,7 +144,6 @@ def evolve(dustinfo,duststate,gasstate):
         dndt_gain = 0
         dndt_loss = 0
 
-        # TODO Over what range i & j? To avoid edge cases...
         for i,(r_i,m_i,n_i,v_i) in enumerate(zip(sizes,masses,densities,velos)):
 
             # Define relative velocity with added Browninan motion term.
