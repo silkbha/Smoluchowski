@@ -1,9 +1,10 @@
 import numpy as np
 
-def E_to_T():
+def E_to_T(E_gas):
+    """ Converts kinetic energy of gas to temperature using kinetic theory of gases.
     """
-    """
-    return
+    k_B = 1.380649e-16 # Boltzmann constant in erg/K.
+    return 2 * E_gas / (3 * k_B)
 
 def St_to_r(St, rho_gas,T_gas,specvol):
     """ Converts particle Stokes number to absolute particle size.
@@ -59,6 +60,7 @@ def preprocessing_podolak(dustinfo,duststate,gasstate):
 
     # Dust Info
     Stokes = dustinfo           # (N,1) array
+    Nbins = len(dustinfo)
 
     # Dust state
     densities = duststate[:,0]  # (N,1) array
@@ -67,6 +69,17 @@ def preprocessing_podolak(dustinfo,duststate,gasstate):
     # Gas state
     rho_gas  = gasstate[0]      # single value
     E_gas    = gasstate[1]      # single value
-    rho_dust = gasstate[2]      # single value
+    c_s      = gasstate[2]      # single value
+    rho_dust = gasstate[3]      # single value
 
-    return sizes,masses,vrel
+    T_gas = E_to_T(E_gas)
+    
+    sizes  = np.zeros(Nbins)
+    masses = np.zeros(Nbins)
+
+    vrel   = np.zeros((Nbins,Nbins))
+    sigma  = np.zeros((Nbins,Nbins))
+
+
+
+    return densities,vrel,sigma
