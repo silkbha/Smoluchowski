@@ -1,9 +1,10 @@
 import numpy as np
 from podolak import evolve
+from preprocessing import preprocessing_podolak as prep
 
 
 
-def main():
+def generate_inputs():
 
     # Stays constant throughout parameter sweep
     # TODO keep constant and omit from input space altogether?
@@ -22,7 +23,9 @@ def main():
 
     return
 
+def parameter_sweep():
+    return
 
 
 if __name__=="__main__":
-    main()
+    generate_inputs()
