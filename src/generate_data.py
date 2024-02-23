@@ -1,6 +1,6 @@
 import numpy as np
 from podolak import evolve
-from preprocessing import preprocessing_podolak as prep
+from preprocessing import preprocessing_direct as prep
 
 
 

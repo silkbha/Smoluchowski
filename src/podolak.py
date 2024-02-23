@@ -1,26 +1,5 @@
 import numpy as np
 
-def St_to_r(St, rho_gas,T_gas,specvol):
-    """ Converts particle Stokes number to absolute particle size.
-        From: Dullemond lecture slides.
-        For now only in Epstein drag regime.
-        TODO add Stokes regime(s) later? need particle Reynolds number(s)
-        Inputs: 
-            - St       : Stokes number(s) to be converted. (scalar or array)
-            - rho_gas  : gas mass density in g/cm3.
-            - T_gas    : gas temperature in K.
-            - specvol  : dust monomer specific volume in cm3/g (i.e. 1/rho_dust).
-        Outputs:
-            - Particle size(s) in cm. (scalar or array)
-    """
-    # Omega_K = 1 # Keplerian orbital velocity (always 1 in FARGO shearing box?).
-    k_B = 1.380649e-16 # Boltzmann constant in erg/K.
-    m_p = 1.6726219236951e-24 # Proton mass in g.
-    # Calculate thermal velocity of gas in cm/s.
-    v_th = np.sqrt( (8 * k_B * T_gas) / (np.pi * 1 * m_p) ) # 1 = mean molecular weight (assumes 100% HI).
-    # Calculate particle size.
-    return St * rho_gas * v_th * specvol
-
 def vrel_bm(m_i,m_j,T_gas):
     """ Brownian motion component to be added to relative particle velocities.
         From: Birnstiel et al. 2010 (A&A 513, A79), Eq. 44.
@@ -88,7 +67,7 @@ def C(masses,i,j,k):
 #                                              Main Function                                                  #
 ###############################################################################################################
 
-def evolve(dustinfo,duststate,gasstate):
+def evolve(sizes,masses,densities,velos,T_gas):
     """ Single-step time evolution of the Smoluchowski coagulation equation in 0D using the Podolak algorithm.
         Based on: Brauer et al. 2008 (A&A 480, 859-877), Appendix A.1.
     
@@ -111,30 +90,7 @@ def evolve(dustinfo,duststate,gasstate):
     """
     
     # Check if input dust info & state arrays are given correctly.
-    if len(dustinfo[:,0]) != len(duststate[:,0]):
-        raise ValueError("Dust info and state arrays must contain the same number of bins!")
-
-    ########################################################################################
-    #                                    PREPROCESSING                                     #
-    ########################################################################################
-    # Dust info
-    Stokes = dustinfo[:,0]      # (N,1) array
-    masses = dustinfo[:,1]      # (N,1) array
-
-    # Dust state
-    densities = duststate[:,0]  # (N,1) array
-    velos = duststate[:,1:]     # (N,3) array
-    
-    # Gas state
-    rho_gas  = gasstate[0]      # single value
-    T_gas    = gasstate[1]      # single value # TODO Fargo gives energy instead(?) -> Convert?
-    rho_dust = gasstate[2]      # single value
-
-    # Create (N,1) array of real (absolute) particle sizes.
-    specvol = 1/rho_dust
-    sizes = St_to_r(Stokes, rho_gas,T_gas,specvol)
-
-    ########################################################################################
+    # TODO
 
     # Calculate evolved size distribution.
     densities_new = np.zeros(len(densities))

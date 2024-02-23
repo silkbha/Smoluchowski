@@ -1,7 +1,7 @@
 import numpy as np
 
 def E_to_T(E_gas):
-    """ Converts kinetic energy of gas to temperature using kinetic theory of gases.
+    """ Converts kinetic energy of gas (as given by FARGO) to temperature using kinetic theory of gases.
     """
     k_B = 1.380649e-16 # Boltzmann constant in erg/K.
     return 2 * E_gas / (3 * k_B)
@@ -26,60 +26,30 @@ def St_to_r(St, rho_gas,T_gas,specvol):
     # Calculate particle size.
     return St * rho_gas * v_th * specvol
 
-def vrel_bm(m_i,m_j,T_gas):
-    """ Brownian motion component to be added to relative particle velocities.
-        From: Birnstiel et al. 2010 (A&A 513, A79), Eq. 44.
-        Allows for treatment of collisions between same-sized particles, i.e. m_i == m_j.
-        Otherwise, their relative velocities would always be zero -> no collisions -> no coagulation/fragmentation.
-        Inputs :
-            - m_i,m_j : particle mass in g.
-            - T_gas   : gas temperature in K.
-        Output :
-            - Brownian motion induced relative particle velocity in cm/s.
+def get_mass(r, rho):
+    """ Assumes spherical shape for all dust grains.
     """
-    k_B = 1.380649e-16 # Boltzmann constant in erg/K
-    return np.sqrt( (8 * (m_i+m_j) * k_B * T_gas) / (np.pi*m_i*m_j) )
-
-def sigma(r_i,r_j):
-    """ Collisional cross section.
-        Inputs:
-            - r_i,r_j : particle size in cm.
-        Output:
-            - Collisional cross section in cm2.
-    """
-    return np.pi * (r_i+r_j)**2
+    return rho * 4/3 * np.pi * r**3
 
 
-def preprocessing_podolak(dustinfo,duststate,gasstate):
+
+def preprocessing_direct(Stokes,gasstate):
     """ Takes state and info given by FARGO3D and converts to input for dust evolution step.
 
 
-        # TODO convert 3D velocity distribution to 2D relative velocity matrix
+        # TODO convert 3D velocity distribution to 2D relative velocity matrix?
     """
-
-
-    # Dust Info
-    Stokes = dustinfo           # (N,1) array
-    Nbins = len(dustinfo)
-
-    # Dust state
-    densities = duststate[:,0]  # (N,1) array
-    velos = duststate[:,1:]     # (N,3) array
 
     # Gas state
     rho_gas  = gasstate[0]      # single value
     E_gas    = gasstate[1]      # single value
     c_s      = gasstate[2]      # single value
     rho_dust = gasstate[3]      # single value
+    specvol  = 1/rho_dust
 
-    T_gas = E_to_T(E_gas)
-    
-    sizes  = np.zeros(Nbins)
-    masses = np.zeros(Nbins)
-
-    vrel   = np.zeros((Nbins,Nbins))
-    sigma  = np.zeros((Nbins,Nbins))
+    T_gas  = E_to_T(E_gas)
+    sizes  = St_to_r(Stokes, rho_gas,T_gas,specvol)
+    masses = get_mass(sizes, rho_dust)
 
 
-
-    return densities,vrel,sigma
+    return sizes,masses, T_gas
