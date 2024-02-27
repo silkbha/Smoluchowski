@@ -1,5 +1,5 @@
 import numpy as np
-from podolak import evolve
+from podolak import evolve_simple as evolve
 from preprocessing import preprocessing_direct as prep
 
 
@@ -9,6 +9,8 @@ def generate_inputs():
     # Stays constant throughout parameter sweep
     # TODO keep constant and omit from input space altogether?
     Stokes = np.logspace(0.01,0.5,100)
+
+
     Masses = np.zeros(100) # compute from sizes and rho_dust? Or given by Fargo?
 
     # Variable parameters (ranges)
@@ -17,10 +19,12 @@ def generate_inputs():
 
     # TODO gas parameters: single values, easy to set ranges
 
-
+    # vary over MRN distribution!! minmax, slope
     # Loop over variable param grid!
 
 
+
+    # First try: zero vrel, brownian only : check analytical solution dullemond/dominik 2005
     return
 
 def parameter_sweep():
