@@ -3,6 +3,11 @@ from podolak import evolve_simple as evolve
 from preprocessing import preprocessing_direct as prep
 
 
+def MRN():
+    """
+    """
+    return
+
 
 def generate_inputs():
 
