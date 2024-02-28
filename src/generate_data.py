@@ -3,10 +3,11 @@ from podolak import evolve_simple as evolve
 from preprocessing import preprocessing_direct as prep
 
 
-def MRN():
+def MRN(a, amin,amax,rho_gas, r=3.5):
     """
     """
-    return
+    da = amax**(4-r) - amin**(4-r)
+    return (4-r) * a**(-r) / (4/3 * np.pi * da * rho_gas)
 
 
 def generate_inputs():

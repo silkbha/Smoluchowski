@@ -118,7 +118,7 @@ def evolve_simple(sizes,masses, densities,velos,T_gas):
 
 def evolve_modified(sizes,masses, densities,velos,T_gas):
     """ Single-step time evolution of the Smoluchowski coagulation equation in 0D using the Podolak algorithm.
-        Modified version to accomodate larger value ranges with better numerical precision.
+        Modified version to accomodate larger value ranges with better numerical precision for mass conservation.
         Based on: Brauer et al. 2008 (A&A 480, 859-877), Appendix A.2.
         TODO : everything
     
@@ -162,7 +162,7 @@ def evolve_modified(sizes,masses, densities,velos,T_gas):
         
         # Get new n_k(t+1) by adding dndt to previous n_k(t).
         # (with factor 0.5 in gain term to prevent double counting of collisions ij & ji)
-        densities_new[k] = n_k + 0.5 * dndt_gain - dndt_loss
+        densities_new[k] = n_k # + 0.5 * dndt_gain - dndt_loss
     
     return densities_new
 
