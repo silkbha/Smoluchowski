@@ -26,7 +26,7 @@ def sigma(r_i,r_j):
 
 
 
-def find_idx_low(array,target):
+def find_m(array,target):
     """ Finds the index of the nearest value below a given target value in an array.
         Based on: https://stackoverflow.com/questions/67617053/ .
     """
@@ -35,14 +35,14 @@ def find_idx_low(array,target):
     idx = diff.argmin()
     return idx
 
-def C(masses,i,j,k):
+def C(masses, i,j,k):
     """ Calculates coefficient C_ijk for the Podolak coagulation algorithm.
         From: Brauer et al. 2008 (A&A 480, 859-877), Equation A.5.
     """
     m_s = masses[i] + masses[j]
     
     # Nearest bins m & n for which m_m < m_s < m_n
-    m = find_idx_low(masses, m_s)
+    m = find_m(masses, m_s)
     n = m + 1
     
     if k != m and k != n:
@@ -60,43 +60,62 @@ def C(masses,i,j,k):
     elif k == n:
         return 1 - epsilon
     else:
-        raise ValueError("Something went wrong when computing nearest neighboring mass bins!")
+        raise ValueError("Something went wrong when computing nearest neighboring mass bins...")
 
 def D(masses, j,k,c_e):
     """ Calculates coefficient D_jk for the modified Podolak coagulation algorithm.
         From: Brauer et al. 2008 (A&A 480, 859-877), Equation A.9.
-        # TODO: edge cases
+        TODO: edge cases
     """
+    m_j  = masses[j]
+    m_k  = masses[k]
+    m_k1 = masses[k+1]
+
     if j <= k+1-c_e:
-        return -masses[j] / (masses[k+1] - masses[k])
-    else:
+        return -m_j / (m_k1 - m_k)
+    elif j > k+1-c_e:
         return -1
+    else:
+        raise ValueError("Something went wrong when computing coefficient D...")
 
 def E(masses, j,k,c_e):
     """ Calculates coefficient E_jk for the modified Podolak coagulation algorithm.
         From: Brauer et al. 2008 (A&A 480, 859-877), Equation A.10.
+        TODO: correct theta?
+        TODO: edge cases
     """
-    return # TODO theta??
+    m_j  = masses[j]
+    m_k  = masses[k]
+    m_k1 = masses[k+1]
+    m_k0 = masses[k-1]
+
+    if j <= k-c_e:
+        return m_j / (m_k - m_k0)
+    elif j > k-c_e:
+        return (1 - (m_j + m_k0 - m_k)/(m_k1 - m_k)) * Theta(m_k1 - m_j - m_k0, 0)
+    else:
+        raise ValueError("Something went wrong when computing coefficient E...")
 
 def M(masses, i,j,k):
     """ Calculates coefficient M_ijk for the modified Podolak coagulation algorithm.
         From: Brauer et al. 2008 (A&A 480, 859-877), Equation A.13.
-        # TODO: edge cases, E, c_e
+        TODO: c_e
+        TODO: edge cases
     """
-    c_e = 1 # TODO what? / how?
+    c_e = 1
     M = C(masses,i,j,k) * Theta(k-i-1.5, 0) * Theta(i-j-0.5, 0)
-    if i == j:
-        M += 0.5 * C(masses,i,j,k)
     if i == k:
         M += D(masses,j,i,c_e)
-    if i == k-1:
+    elif i == k-1:
         M += E(masses,j,i+1,c_e) * Theta(k-j-1.5)
+    if i == j:
+        M += 0.5 * C(masses,i,j,k)
     return M
 
 
 
 ###############################################################################################################
-#                                              Main Function                                                  #
+#                                             Main Functions                                                  #
 ###############################################################################################################
 
 def evolve_simple(sizes,masses, densities,velos,T_gas):
@@ -172,7 +191,7 @@ def evolve_modified(sizes,masses, densities,velos,T_gas):
 
     # Calculate evolved size distribution.
     densities_new = np.zeros(len(densities))
-    for k,(r_k,m_k,n_k,v_k) in enumerate(zip(sizes,masses,densities,velos)):
+    for k,n_k in enumerate(densities):
 
         dndt = 0
 
@@ -181,7 +200,7 @@ def evolve_modified(sizes,masses, densities,velos,T_gas):
                 
                 M_ijk = M(masses,i,j,k)
                 if M_ijk == 0:
-                    continue # dndt_gain += 0
+                    continue # dndt += 0
 
                 vrel_ij = np.linalg.norm(v_j-v_i) + vrel_bm(m_j,m_i,T_gas)
                 dndt += n_i*n_j * sigma(r_i,r_j) * vrel_ij * M_ijk
