@@ -36,11 +36,11 @@ def find_m(array,target):
     return idx
 
 def find_ce(masses,k):
-    
+    """
+    """
     m_k  = masses[k]
     m_k0 = masses[k-1]
 
-    
     return
 
 def C(masses, i,j,k):
