@@ -35,6 +35,14 @@ def find_m(array,target):
     idx = diff.argmin()
     return idx
 
+def find_ce(masses,k):
+    
+    m_k  = masses[k]
+    m_k0 = masses[k-1]
+
+    
+    return
+
 def C(masses, i,j,k):
     """ Calculates coefficient C_ijk for the Podolak coagulation algorithm.
         From: Brauer et al. 2008 (A&A 480, 859-877), Equation A.5.
@@ -102,14 +110,18 @@ def M(masses, i,j,k):
         TODO: c_e
         TODO: edge cases
     """
-    c_e = 1
+    c_e = find_ce(masses,k)
+
     M = C(masses,i,j,k) * Theta(k-i-1.5, 0) * Theta(i-j-0.5, 0)
+    
+    # Kronecker deltas
     if i == k:
         M += D(masses,j,i,c_e)
     elif i == k-1:
         M += E(masses,j,i+1,c_e) * Theta(k-j-1.5)
     if i == j:
         M += 0.5 * C(masses,i,j,k)
+    
     return M
 
 
