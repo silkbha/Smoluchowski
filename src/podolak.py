@@ -62,7 +62,7 @@ def C(masses, i,j,k):
     else:
         raise ValueError("Something went wrong when computing nearest neighboring mass bins...")
 
-def D(masses, j,k,c_e):
+def D(masses, j,k, c_e):
     """ Calculates coefficient D_jk for the modified Podolak coagulation algorithm.
         From: Brauer et al. 2008 (A&A 480, 859-877), Equation A.9.
         TODO: edge cases
@@ -78,7 +78,7 @@ def D(masses, j,k,c_e):
     else:
         raise ValueError("Something went wrong when computing coefficient D...")
 
-def E(masses, j,k,c_e):
+def E(masses, j,k, c_e):
     """ Calculates coefficient E_jk for the modified Podolak coagulation algorithm.
         From: Brauer et al. 2008 (A&A 480, 859-877), Equation A.10.
         TODO: correct theta?
@@ -211,4 +211,4 @@ def evolve_modified(sizes,masses, densities,velos,T_gas):
     return densities_new
 
 if __name__=="__main__":
-    print("Hello There :) ")
+    print("Hello There")
