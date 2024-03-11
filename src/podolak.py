@@ -35,14 +35,6 @@ def find_m(array,target):
     idx = diff.argmin()
     return idx
 
-def find_ce(masses,k):
-    """
-    """
-    m_k  = masses[k]
-    m_k0 = masses[k-1]
-
-    return
-
 def C(masses, i,j,k):
     """ Calculates coefficient C_ijk for the Podolak coagulation algorithm.
         From: Brauer et al. 2008 (A&A 480, 859-877), Equation A.5.
@@ -56,7 +48,7 @@ def C(masses, i,j,k):
     if k != m and k != n:
         return 0
     elif n == len(masses):
-        # Edge case: m is final index, index n is out of bounds!
+        # Edge case: m is final index, index n is out of bounds.
         return m_s / masses[k] # final bin acts as sink particle
     
     m_m = masses[m]
@@ -77,6 +69,12 @@ def D(masses, j,k, c_e):
     """
     m_j  = masses[j]
     m_k  = masses[k]
+
+    if k+1 == len(masses):
+        # Edge case: k is final index, k+1 is out of bounds.
+        # TODO
+        print("TODO")
+
     m_k1 = masses[k+1]
 
     if j <= k+1-c_e:
@@ -94,6 +92,12 @@ def E(masses, j,k, c_e):
     """
     m_j  = masses[j]
     m_k  = masses[k]
+
+    if k+1 == len(masses):
+        # Edge case: k is final index, k+1 is out of bounds.
+        # TODO
+        print("TODO")
+
     m_k1 = masses[k+1]
     m_k0 = masses[k-1]
 
@@ -103,6 +107,15 @@ def E(masses, j,k, c_e):
         return (1 - (m_j + m_k0 - m_k)/(m_k1 - m_k)) * Theta(m_k1 - m_j - m_k0, 0)
     else:
         raise ValueError("Something went wrong when computing coefficient E...")
+
+def find_ce(masses,k):
+    """
+    """
+    m_k  = masses[k]
+    m_k0 = masses[k-1]
+    dmk = m_k - m_k0
+
+    return
 
 def M(masses, i,j,k):
     """ Calculates coefficient M_ijk for the modified Podolak coagulation algorithm.
