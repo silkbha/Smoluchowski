@@ -70,14 +70,12 @@ def D(masses, j,k, c_e):
     m_j  = masses[j]
     m_k  = masses[k]
 
-    if k+1 == len(masses):
-        # Edge case: k is final index, k+1 is out of bounds.
-        # TODO
-        print("TODO")
-
-    m_k1 = masses[k+1]
-
     if j <= k+1-c_e:
+        if k+1 == len(masses):
+            # Edge case: k is final index, k+1 is out of bounds.
+            # TODO
+            raise ValueError("Reached edge case: index out of bounds. Will fix later...")
+        m_k1 = masses[k+1]
         return -m_j / (m_k1 - m_k)
     elif j > k+1-c_e:
         return -1
@@ -87,29 +85,27 @@ def D(masses, j,k, c_e):
 def E(masses, j,k, c_e):
     """ Calculates coefficient E_jk for the modified Podolak coagulation algorithm.
         From: Brauer et al. 2008 (A&A 480, 859-877), Equation A.10.
-        TODO: correct theta?
         TODO: edge cases
+        TODO: correct theta?
     """
     m_j  = masses[j]
     m_k  = masses[k]
-
-    if k+1 == len(masses):
-        # Edge case: k is final index, k+1 is out of bounds.
-        # TODO
-        print("TODO")
-
-    m_k1 = masses[k+1]
     m_k0 = masses[k-1]
 
     if j <= k-c_e:
         return m_j / (m_k - m_k0)
     elif j > k-c_e:
+        if k+1 == len(masses):
+            # Edge case: k is final index, k+1 is out of bounds.
+            # TODO
+            raise ValueError("Reached edge case: index out of bounds. Will fix later...")
+        m_k1 = masses[k+1]
         return (1 - (m_j + m_k0 - m_k)/(m_k1 - m_k)) * Theta(m_k1 - m_j - m_k0, 0)
     else:
         raise ValueError("Something went wrong when computing coefficient E...")
 
 def find_ce(masses,k):
-    """
+    """ TODO
     """
     m_k  = masses[k]
     m_k0 = masses[k-1]
