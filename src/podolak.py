@@ -60,7 +60,7 @@ def C(masses, i,j,k):
     elif k == n:
         return 1 - epsilon
     else:
-        raise ValueError("Something went wrong when computing nearest neighboring mass bins...")
+        raise ValueError("Something went wrong when computing coefficient C...")
 
 def D(masses, j,k, c_e):
     """ Calculates coefficient D_jk for the modified Podolak coagulation algorithm.
