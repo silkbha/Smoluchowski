@@ -90,15 +90,24 @@ def E(masses, j,k, c_e):
     """
     m_j  = masses[j]
     m_k  = masses[k]
-    m_k0 = masses[k-1]
 
     if j <= k-c_e:
+        if k == 0:
+            # Edge case: k is first index, k-1 is out of bounds.
+            # TODO
+            raise ValueError("Reached edge case: index out of bounds. Will fix later...")
+        m_k0 = masses[k-1]
         return m_j / (m_k - m_k0)
     elif j > k-c_e:
-        if k+1 == len(masses):
+        if k == 0:
+            # Edge case: k is first index, k-1 is out of bounds.
+            # TODO
+            raise ValueError("Reached edge case: index out of bounds. Will fix later...")
+        elif k+1 == len(masses):
             # Edge case: k is final index, k+1 is out of bounds.
             # TODO
             raise ValueError("Reached edge case: index out of bounds. Will fix later...")
+        m_k0 = masses[k-1]
         m_k1 = masses[k+1]
         return (1 - (m_j + m_k0 - m_k)/(m_k1 - m_k)) * Theta(m_k1 - m_j - m_k0, 0)
     else:
@@ -121,17 +130,18 @@ def M(masses, i,j,k):
     """
     c_e = find_ce(masses,k)
 
-    M = C(masses,i,j,k) * Theta(k-i-1.5, 0) * Theta(i-j-0.5, 0)
+    C_ijk = C(masses,i,j,k)
+    M_ijk = C_ijk * Theta(k-i-1.5, 0) * Theta(i-j-0.5, 0)
     
     # Kronecker deltas
     if i == k:
-        M += D(masses,j,i,c_e)
+        M_ijk += D(masses,j,i,c_e)
     elif i == k-1:
-        M += E(masses,j,i+1,c_e) * Theta(k-j-1.5)
+        M_ijk += Theta(k-j-1.5) * E(masses,j,i+1,c_e)
     if i == j:
-        M += 0.5 * C(masses,i,j,k)
+        M_ijk += 0.5 * C_ijk
     
-    return M
+    return M_ijk
 
 
 

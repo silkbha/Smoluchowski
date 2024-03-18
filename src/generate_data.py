@@ -10,17 +10,15 @@ def MRN(a, amin,amax,rho_gas, r=3.5):
     return (4-r) * a**(-r) / (4/3 * np.pi * da * rho_gas)
 
 
-def generate_inputs():
+def generate_inputs(St_min,St_max, idxmin0,idxmax0, rho_dust,rho_gas,c_s):
 
     # Stays constant throughout parameter sweep
-    # TODO keep constant and omit from input space altogether?
-    Stokes = np.logspace(0.01,0.5,100)
+    Stokes = np.logspace(St_min,St_max,100)
+    sizes,masses,T_gas = prep(Stokes,rho_dust,rho_gas,c_s)
 
-
-    Masses = np.zeros(100) # compute from sizes and rho_dust? Or given by Fargo?
-
+    densities = MRN(sizes, sizes[idxmin0],sizes[idxmax0], rho_gas)
     # Variable parameters (ranges)
-    # TODO number density distributions: how to choose appropriate parameter ranges????
+    # TODO number density distributions: MRN
     # TODO velos: input each 3D particle velocity or compute relative velo matrix first?
 
     # TODO gas parameters: single values, easy to set ranges
@@ -31,7 +29,7 @@ def generate_inputs():
 
 
     # First try: zero vrel, brownian only : check analytical solution dullemond/dominik 2005
-    return
+    return sizes, masses, densities, T_gas
 
 def parameter_sweep():
     return
