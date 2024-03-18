@@ -42,4 +42,4 @@ def parameter_sweep():
 
 
 if __name__=="__main__":
-    generate_inputs()
+    parameter_sweep()
