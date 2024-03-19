@@ -44,12 +44,15 @@ def parameter_sweep():
     return
 
 def test():
-    """
+    """ TODO check total mass conservation
+        TODO save, track, plot
     """
     nbins   = 100
     steps   = 100
+
     idxmin0 = 1
     idxmax0 = 10
+    
     rho_gas = 1e-6
     c_s     = 1e1
 
@@ -61,4 +64,4 @@ def test():
     return
 
 if __name__=="__main__":
-    parameter_sweep()
+    test()
