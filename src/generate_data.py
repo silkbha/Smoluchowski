@@ -19,13 +19,13 @@ def parameter_sweep():
                 for idxmax0 in range(nbins):
                     sizes,masses,densities,velos,T_gas = generate_inputs(nbins,idxmin0,idxmax0,rho_gas,c_s)
                     densities_new = evolve(sizes,masses, densities,velos,T_gas)
-    #TODO save, track, etc.
+    #TODO save, track, test
     
     return
 
 def test():
-    """ TODO check total mass conservation
-        TODO save, track, plot
+    """ TODO track and check total mass conservation
+        TODO save, track, plot density evolution
     """
     nbins   = 100
     steps   = 100
