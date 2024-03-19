@@ -24,11 +24,19 @@ def St_to_r(St, rho_gas,T_gas,rho_dust, k_B,m_p,mu):
     # Calculate particle size.
     return St * rho_gas * v_th / rho_dust
 
-def get_mass(r, rho):
+def get_mass(r, rho_dust):
     """ Get particle mass from size and density.
         Assumes spherical shape for all particles.
     """
-    return rho * 4/3 * np.pi * r**3
+    return rho_dust * 4/3 * np.pi * r**3
+
+def MRN(a, amin,amax,rho_gas):
+    """
+    """
+    da = amax**0.5 - amin**0.5
+    return 0.5 * a**-3.5 / (4/3 * np.pi * da * rho_gas)
+
+
 
 def preprocessing_direct(Stokes,rho_dust,rho_gas,c_s):
     """ Takes state and info given by FARGO3D and converts to input for dust evolution step.
@@ -55,23 +63,14 @@ def preprocessing_direct(Stokes,rho_dust,rho_gas,c_s):
     sizes  = St_to_r(Stokes, rho_gas,T_gas,rho_dust,  k_B,m_p,mu)
     masses = get_mass(sizes, rho_dust)
 
-
     return sizes,masses, T_gas
-
-
-
-def MRN(a, amin,amax,rho_gas, r=3.5):
-    """
-    """
-    da = amax**(4-r) - amin**(4-r)
-    return (4-r) * a**(-r) / (4/3 * np.pi * da * rho_gas)
 
 def generate_inputs_basic(nbins,idxmin0,idxmax0 ,rho_gas,c_s):
     """ # First try: zero vrel, brownian only : check analytical solution dullemond/dominik 2005.
     """
     rho_dust = 1e1
     St_min, St_max = 0.01, 0.5
-    Stokes = np.logspace(St_min,St_max,nbins)
+    Stokes = np.logspace(10**St_min,10**St_max,nbins)
 
     sizes, masses, T_gas = preprocessing_direct(Stokes,rho_dust,rho_gas,c_s)
     densities = MRN(sizes, sizes[idxmin0],sizes[idxmax0], rho_gas)
