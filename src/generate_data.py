@@ -36,17 +36,19 @@ def test(nbins,steps):
     idxmin0 = 0
     idxmax0 = 10
     
-    rho_gas = 1e-12
-    c_s     = 1e2
+    # rho_gas = 1e-12
+    # c_s     = 1e2
+    rho_dust = 1
 
-    densities = np.zeros((steps,nbins))
-    # sizes,masses, densities[0], velos, T_gas = generate_inputs(nbins,idxmin0,idxmax0,rho_gas,c_s)
-    sizes  = np.logspace(10**(1e-3),10**(1e-1),nbins)
-    masses = get_mass(sizes, rho_dust=1e-3)
+    sizes  = np.logspace(-5,1,nbins)
+    masses = get_mass(sizes, rho_dust)
+    
     velos  = np.zeros((len(masses),3))
     T_gas  = 204
 
-    densities[0] = MRN(sizes, sizes[idxmin0],sizes[idxmax0], rho_gas)
+    densities = np.zeros((steps,nbins))
+    densities[0] = MRN(masses, masses[idxmin0],masses[idxmax0], rho_dust)
+    # sizes,masses, densities[0], velos, T_gas = generate_inputs(nbins,idxmin0,idxmax0,rho_gas,c_s)
 
     for k in range(steps-1):
         densities[k+1] = evolve(sizes,masses, densities[k],velos,T_gas)
@@ -63,9 +65,9 @@ if __name__=="__main__":
     densities = test(nbins,steps)
     colors = plt.cm.jet(np.linspace(0,1,steps))
     
-    fig, ax = plt.subplots(1,1, figsize=(7,5))
     for i in range(steps):
+        fig, ax = plt.subplots(1,1, figsize=(7,5))
         ax.plot(np.arange(nbins),densities[i], color=colors[i])
-    plt.show()
+        plt.show()
     
     print("Done. Goodbye...")

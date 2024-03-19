@@ -30,11 +30,11 @@ def get_mass(r, rho_dust):
     """
     return rho_dust * 4/3 * np.pi * r**3
 
-def MRN(a, amin,amax,rho_gas):
+def MRN(a, amin,amax,rho_dust):
     """
     """
     da = amax**0.5 - amin**0.5
-    return 0.5 * a**-3.5 / (4/3 * np.pi * da * rho_gas)
+    return 0.5 * a**-3.5 / (4/3 * np.pi * da * rho_dust)
 
 
 
