@@ -33,16 +33,16 @@ def test(nbins,steps):
     """ TODO track and check total mass conservation
         TODO save, track, plot density evolution
     """
-    idxmin0 = 1
-    idxmax0 = 3
+    idxmin0 = 0
+    idxmax0 = 10
     
     rho_gas = 1e-12
     c_s     = 1e2
 
     densities = np.zeros((steps,nbins))
     # sizes,masses, densities[0], velos, T_gas = generate_inputs(nbins,idxmin0,idxmax0,rho_gas,c_s)
-    sizes  = np.logspace(10**(0.1e-2),10**(0.5e-2),nbins)
-    masses = get_mass(sizes, rho_dust=1e-1)
+    sizes  = np.logspace(10**(1e-3),10**(1e-1),nbins)
+    masses = get_mass(sizes, rho_dust=1e-3)
     velos  = np.zeros((len(masses),3))
     T_gas  = 204
 
@@ -57,14 +57,15 @@ def test(nbins,steps):
 
 if __name__=="__main__":
 
-    nbins   = 20
+    nbins   = 50
     steps   = 5
 
     densities = test(nbins,steps)
     colors = plt.cm.jet(np.linspace(0,1,steps))
     
+    fig, ax = plt.subplots(1,1, figsize=(7,5))
     for i in range(steps):
-        fig, ax = plt.subplots(1,1, figsize=(7,5))
-        ax.plot(np.arange(20),densities[i], color=colors[i])
-        plt.show()
+        ax.plot(np.arange(nbins),densities[i], color=colors[i])
+    plt.show()
     
+    print("Done. Goodbye...")
