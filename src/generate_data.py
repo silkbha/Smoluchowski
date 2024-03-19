@@ -1,9 +1,6 @@
 import numpy as np
 from podolak import evolve_simple as evolve
-from preprocessing import generate_inputs
-
-
-
+from preprocessing import generate_inputs_basic as generate_inputs
 
 def parameter_sweep():
     """
