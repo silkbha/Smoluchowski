@@ -75,7 +75,7 @@ def generate_inputs(nbins,idxmin0,idxmax0 ,rho_gas,c_s):
     St_min, St_max = 0.01, 0.5
     Stokes = np.logspace(St_min,St_max,nbins)
 
-    sizes, masses, T_gas = prep(Stokes,rho_dust,rho_gas,c_s)
+    sizes, masses, T_gas = preprocessing_direct(Stokes,rho_dust,rho_gas,c_s)
     densities = MRN(sizes, sizes[idxmin0],sizes[idxmax0], rho_gas)
     velos = np.zeros((len(Stokes),3))
 
