@@ -1,29 +1,9 @@
 import numpy as np
 from podolak import evolve_simple as evolve
-from preprocessing import preprocessing_direct as prep
+from preprocessing import generate_inputs
 
 
-def MRN(a, amin,amax,rho_gas, r=3.5):
-    """
-    """
-    da = amax**(4-r) - amin**(4-r)
-    return (4-r) * a**(-r) / (4/3 * np.pi * da * rho_gas)
 
-# def full_evolution(sizes,masses, densities,velos,T_gas):
-#     return
-
-def generate_inputs(nbins,idxmin0,idxmax0 ,rho_gas,c_s):
-    """ # First try: zero vrel, brownian only : check analytical solution dullemond/dominik 2005.
-    """
-    rho_dust = 1e1
-    St_min, St_max = 0.01, 0.5
-    Stokes = np.logspace(St_min,St_max,nbins)
-
-    sizes, masses, T_gas = prep(Stokes,rho_dust,rho_gas,c_s)
-    densities = MRN(sizes, sizes[idxmin0],sizes[idxmax0], rho_gas)
-    velos = np.zeros((len(Stokes),3))
-
-    return sizes, masses, densities, velos, T_gas
 
 def parameter_sweep():
     """
