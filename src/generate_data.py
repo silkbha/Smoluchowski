@@ -1,33 +1,33 @@
 import numpy as np
 from matplotlib import pyplot as plt
-# from preprocessing import generate_inputs_basic as generate_inputs
+from preprocessing import generate_inputs_basic as generate_inputs
 from preprocessing import get_mass
 from preprocessing import MRN
 
-# pick one
+# Pick one
 from podolak import evolve_simple as evolve
 # from podolak import evolve_modified as evolve
 
 
 
 
-# def parameter_sweep():
-#     """
-#     """
-#     nbins   = 100
+def parameter_sweep():
+    """
+    """
+    nbins   = 100
 
-#     Rho_gas = np.logspace(0.1,10,100)
-#     C_s     = np.logspace(0.1,1,100)
+    Rho_gas = np.logspace(0.1,10,100)
+    C_s     = np.logspace(0.1,1,100)
     
-#     for rho_gas in Rho_gas:
-#         for c_s in C_s:
-#             for idxmin0 in range(nbins):
-#                 for idxmax0 in range(nbins):
-#                     sizes,masses,densities,velos,T_gas = generate_inputs(nbins,idxmin0,idxmax0,rho_gas,c_s)
-#                     densities_new = evolve(sizes,masses, densities,velos,T_gas)
-#     #TODO save, track, test
+    for rho_gas in Rho_gas:
+        for c_s in C_s:
+            for idxmin0 in range(nbins):
+                for idxmax0 in range(nbins):
+                    sizes,masses,densities,velos,T_gas = generate_inputs(nbins,idxmin0,idxmax0,rho_gas,c_s)
+                    densities_new = evolve(sizes,masses, densities,velos,T_gas)
+    #TODO save, track, test
     
-#     return
+    return
 
 def test(nbins,steps):
     """ TODO track and check total mass conservation
@@ -40,7 +40,7 @@ def test(nbins,steps):
     # c_s     = 1e2
     rho_dust = 1
 
-    sizes  = np.logspace(-5,1,nbins)
+    sizes  = np.logspace(-3,-2,nbins)
     masses = get_mass(sizes, rho_dust)
     
     velos  = np.zeros((len(masses),3))
@@ -50,8 +50,8 @@ def test(nbins,steps):
     densities[0] = MRN(masses, masses[idxmin0],masses[idxmax0], rho_dust)
     # sizes,masses, densities[0], velos, T_gas = generate_inputs(nbins,idxmin0,idxmax0,rho_gas,c_s)
 
-    for k in range(steps-1):
-        densities[k+1] = evolve(sizes,masses, densities[k],velos,T_gas)
+    for t in range(steps-1):
+        densities[t+1] = evolve(sizes,masses, densities[t],velos,T_gas)
     
     return densities
 
@@ -60,7 +60,7 @@ def test(nbins,steps):
 if __name__=="__main__":
 
     nbins   = 50
-    steps   = 5
+    steps   = 1
 
     densities = test(nbins,steps)
     colors = plt.cm.jet(np.linspace(0,1,steps))

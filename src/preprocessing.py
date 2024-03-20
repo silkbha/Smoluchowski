@@ -77,3 +77,19 @@ def generate_inputs_basic(nbins,idxmin0,idxmax0 ,rho_gas,c_s):
     velos = np.zeros((len(Stokes),3))
 
     return sizes, masses, densities, velos, T_gas
+
+if __name__=="__main__":
+    from matplotlib import pyplot as plt
+
+    nbins = 50
+    idxmin0 = 0
+    idxmax0 = 10
+    rho_dust = 1
+    
+    sizes  = np.logspace(-3,-2,nbins)
+    masses = get_mass(sizes, rho_dust)
+    densities = MRN(masses, masses[idxmin0],masses[idxmax0], rho_dust)
+
+    fig, ax = plt.subplots(1,1, figsize=(7,5))
+    ax.plot(np.arange(nbins),densities, color="k")
+    plt.show()
