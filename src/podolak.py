@@ -183,7 +183,7 @@ def evolve_simple(sizes,masses, densities,velos,T_gas):
             # Mass loss due to coagulation
             dndt_loss += n_k*n_i * sigma(r_k,r_i) * vrel_ik
             
-            # Mass gain due to coagulation 
+            # Mass gain due to coagulation
             for j,(r_j,m_j,n_j,v_j) in enumerate(zip(sizes,masses,densities,velos)):
                 
                 C_ijk = C(masses,i,j,k)

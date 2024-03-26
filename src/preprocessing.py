@@ -24,17 +24,11 @@ def St_to_r(St, rho_gas,T_gas,rho_dust, k_B,m_p,mu):
     # Calculate particle size.
     return St * rho_gas * v_th / rho_dust
 
-def get_mass(r, rho_dust):
+def r_to_m(r, rho_dust):
     """ Get particle mass from size and density.
         Assumes spherical shape for all particles.
     """
-    return rho_dust * 4/3 * np.pi * r**3
-
-def MRN(a, amin,amax,rho_dust):
-    """
-    """
-    da = amax**0.5 - amin**0.5
-    return 0.5 * a**-3.5 / (4/3 * np.pi * da * rho_dust)
+    return 4/3 * np.pi * rho_dust * r**3
 
 
 
@@ -61,9 +55,20 @@ def preprocessing_direct(Stokes,rho_dust,rho_gas,c_s):
 
     T_gas  = cs_to_T(c_s, k_B,m_p,mu)
     sizes  = St_to_r(Stokes, rho_gas,T_gas,rho_dust,  k_B,m_p,mu)
-    masses = get_mass(sizes, rho_dust)
+    masses = r_to_m(sizes, rho_dust)
 
     return sizes,masses, T_gas
+
+
+
+def MRN(a, imin,imax,rho_dust):
+    """
+    """
+    da = a[-1]**0.5 - a[0]**0.5
+    MRN = 0.5/r_to_m(da, rho_dust) * a**-3.5
+    MRN[:imin] = 0
+    MRN[imax:] = 0
+    return MRN
 
 def generate_inputs_basic(nbins,idxmin0,idxmax0 ,rho_gas,c_s):
     """ # First try: zero vrel, brownian only : check analytical solution dullemond/dominik 2005.
@@ -83,15 +88,22 @@ def generate_inputs_basic(nbins,idxmin0,idxmax0 ,rho_gas,c_s):
 if __name__=="__main__":
     from matplotlib import pyplot as plt
 
-    nbins = 50
-    idxmin0 = 0
-    idxmax0 = 10
-    rho_dust = 1
+    nbins    = 100
+    imin     = 0
+    imax     = 20
+    rho_dust = 1e1
 
-    sizes  = np.logspace(-3,-2,nbins)
-    masses = get_mass(sizes, rho_dust)
-    densities = MRN(masses, masses[idxmin0],masses[idxmax0], rho_dust)
+    sizes     = np.logspace(-3,-1,nbins)
+    # sizes     = np.linspace(1e-5,5e-5,nbins)
+    masses    = r_to_m(sizes,rho_dust)
+    densities = MRN(sizes, imin,imax,rho_dust)
+    
+    y = densities * masses * sizes
 
     fig, ax = plt.subplots(1,1, figsize=(7,5))
-    ax.plot(np.arange(nbins),densities, color="k")
+    ax.plot(sizes,y, color="k")
+    ax.set_xscale("log")
+    ax.set_yscale("log")
+    ax.set_xlabel(r"a [cm]")
+    ax.set_ylabel(r"m $\cdot$ a $\cdot$ f(a) [g cm$^{-3}$]")
     plt.show()
