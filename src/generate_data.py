@@ -35,7 +35,7 @@ def test(nbins,steps):
     """
     # nbins    = 100
     imin     = 1
-    imax     = 20
+    imax     = 2
     rho_dust = 1e1
 
     sizes     = np.logspace(-3,-1,nbins)
@@ -59,7 +59,7 @@ def test(nbins,steps):
 if __name__=="__main__":
 
     nbins   = 100
-    steps   = 3
+    steps   = 2
 
     densities,masses,sizes = test(nbins,steps)
     colors = plt.cm.viridis(np.linspace(0,1,steps))

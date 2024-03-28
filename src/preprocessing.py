@@ -64,7 +64,7 @@ def preprocessing_direct(Stokes,rho_dust,rho_gas,c_s):
 def MRN(a, imin,imax,rho_dust):
     """
     """
-    da = a[-1]**0.5 - a[0]**0.5
+    da = a[imax]**0.5 - a[imin]**0.5
     MRN = 0.5/r_to_m(da, rho_dust) * a**-3.5
     MRN[:imin] = 0
     MRN[imax:] = 0
