@@ -1,0 +1,7 @@
+# Ignore Mac system files
+.DS_store
+
+# Ignore jupyter notebook output & cache folders
+notebooks/outputs
+notebooks/__pycache__
+
