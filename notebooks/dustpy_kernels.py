@@ -102,7 +102,7 @@ def set_constant_kernel(sim, a, S0):
     A = np.mean(m[1:]/m[:-1])
     B = 2 * (A-1) / (A+1)
     sim.dust.Sigma[...] = sim.dust.SigmaFloor[...]
-    sim.dust.Sigma[1, :] = np.maximum(solution_constant_kernel(sim.t, m, a, S0)*B, sim.dust.Sigma[1, :])
+    sim.dust.Sigma[1, :] = np.maximum(solution_constant_kernel(sim.t, m, a, S0)*B, sim.dust.SigmaFloor[1, :])
     # Updating the simulation object
     sim.update()
 
@@ -131,12 +131,13 @@ def set_linear_kernel(sim, a, S0):
     # Setting the constant kernel
     sim.dust.kernel[...] = a * (sim.grid.m[:, None] + sim.grid.m[None, :])[None, ...]
     sim.dust.kernel.updater = None
+    # Setting the initial time
+    sim.t = 1.0
     # Setting the initial dust surface density
-    sim.dust.Sigma[...] = sim.dust.SigmaFloor[...]
     m = sim.grid.m
     A = np.mean(m[1:]/m[:-1])
     B = 2 * (A-1) / (A+1)
-    sim.t = 0.9
+    sim.dust.Sigma[...] = sim.dust.SigmaFloor[...]
     sim.dust.Sigma[1, ...] = np.maximum(solution_linear_kernel(sim.t, m, a, S0) * B, sim.dust.SigmaFloor[1, ...])
     # Updating the simulation object
     sim.update()
