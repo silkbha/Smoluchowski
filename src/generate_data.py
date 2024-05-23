@@ -59,7 +59,8 @@ def solution_linear_kernel(m, a, S0, t):
     return N*m**2
 
 def parameter_sweep(output_dir, kernel):
-    """
+    """ TODO find way to save/store outputs within iterator
+        TODO structure outputs, write save function
     """
     
     # Mass grid: stays constant throughout simulation
