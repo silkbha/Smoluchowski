@@ -1,5 +1,7 @@
+import time
 import os
 from pathlib import Path
+import h5py
 import itertools
 import numpy as np
 
@@ -58,32 +60,54 @@ def solution_linear_kernel(m, a, S0, t):
     N = N0 * g * np.exp( -m/m0 * ( 1. - np.sqrt(1-g) )**2 ) / ( 2.*np.sqrt(np.pi) * (m/m0)**1.5 * (1.-g)**0.75 )
     return N*m**2
 
+
+
+
 def parameter_sweep(output_dir, kernel):
-    """ TODO find way to save/store outputs within iterator
-        TODO structure outputs, write save function
+    """ 
     """
     
     # Mass grid: stays constant throughout simulation
-    m  = np.logspace(-12,3,100)
+    m  = np.logspace(-12,4,100)
 
     # Floating point parameters to sweep
-    a  = np.logspace(-6,2, 1000)
-    S0 = np.logspace(-10,3,1000)
-    t  = np.logspace(-9,3, 1e5)
+    a  = np.array([1.]) # np.linspace(0.1,10,50) #
+    S0 = np.logspace(-4,3,200)
+    t  = np.linspace(1e-9,1e3,20000)
     
+    par_space = len(a)*len(S0)*len(t)
+    print("Param space size:", len(a)*len(S0)*len(t))
+
     kernel_dict = {"constant": solution_constant_kernel, "linear": solution_linear_kernel}
 
-    for i in itertools.product(a, S0, t):
-        output = kernel_dict[kernel](m,*i)
+    print("Creating iterable list of parameter value combinations. This may take a while...")
+    inputs = itertools.product(a, S0, t)
+
+    print("Sweeping parameter space...")
+    cols = len(m) + 3
+    data = np.zeros((par_space, cols))
+    for i,input in enumerate(inputs):
+        data[i,0:3] = np.array([*input])
+        data[i,3:]  = kernel_dict[kernel](m,*input)
     
+    filename = f"{output_dir}/data_{kernel}"
+    with h5py.File(filename+".h5", "w") as hf:
+        hf.create_dataset(f"data_{kernel}", data=data)
+    # np.savetxt(filename+"dat", data)
+    print("Done and Saved!")
+
     return
 
 if __name__ == "__main__":
+    start = time.time()
+
     src_dir = os.path.dirname(os.path.abspath(__file__))
     main_dir = str(Path(src_dir).parents[0])
     output_dir = os.path.join(main_dir, "data")
     print(f"Saving data in directory: {output_dir}")
 
-    # kernel = "linear"
-    kernel = "constant"
-    parameter_sweep(output_dir, kernel)
+    parameter_sweep(output_dir, "constant")
+    parameter_sweep(output_dir, "linear")
+
+    end = time.time()
+    print(f"Elapsed time: {end-start} s")
