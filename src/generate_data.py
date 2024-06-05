@@ -9,12 +9,13 @@ from coag_kernels import *
 
 
 
-
 def parameter_sweep(output_dir, kernel):
     """ 
     """
-    
-    # Mass grid: stays constant throughout simulation
+    # Dictionary to map input keyword to corresponding function
+    kernel_dict = {"constant": solution_constant_kernel, "linear": solution_linear_kernel}
+
+    # Define mass grid: stays constant throughout simulation
     m  = np.logspace(-12,4,100)
 
     # Floating point parameters to sweep
@@ -23,9 +24,7 @@ def parameter_sweep(output_dir, kernel):
     t  = np.linspace(1e-9,1e3,20000)
     
     par_space = len(a)*len(S0)*len(t)
-    print("Param space size:", len(a)*len(S0)*len(t))
-
-    kernel_dict = {"constant": solution_constant_kernel, "linear": solution_linear_kernel}
+    print("Param space size:", par_space)
 
     print("Creating iterable list of parameter value combinations. This may take a while...")
     inputs = itertools.product(a, S0, t)
@@ -44,6 +43,8 @@ def parameter_sweep(output_dir, kernel):
     print("Done and Saved!")
 
     return
+
+
 
 if __name__ == "__main__":
     start = time.time()
