@@ -104,6 +104,7 @@ if __name__ == "__main__":
     src_dir = os.path.dirname(os.path.abspath(__file__))
     main_dir = str(Path(src_dir).parents[0])
     output_dir = os.path.join(main_dir, "data")
+    Path(output_dir).mkdir(parents=True, exist_ok=True)
     print(f"Saving data in directory: {output_dir}")
 
     parameter_sweep(output_dir, "constant")
