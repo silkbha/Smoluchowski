@@ -77,7 +77,7 @@ def main(filename, output_dir):
     loss_fn = nn.MSELoss()
     loader = data.DataLoader(data.TensorDataset(X_train, y_train), shuffle=False, batch_size=8)
 
-    n_epochs = 250
+    n_epochs = 275
     for epoch in range(n_epochs):
         model.train()
         for X_batch, y_batch in loader:
