@@ -28,7 +28,7 @@ class ToyModel(nn.Module):
         self.lstm = nn.LSTM(input_size=self.input_size,
                             hidden_size=self.hidden_size,
                             batch_first=True,
-                            num_layers = 1,
+                            num_layers = 2,
                             dtype=torch.float64
                             )
         self.out = nn.Linear(self.hidden_size, self.output_size, dtype=torch.float64)
@@ -61,7 +61,7 @@ def train(filename, output_dir):
     series = f["simple_dataset"][:,1:]
     print(len(series))
 
-    train_size = int(len(series) * 0.67)
+    train_size = int(len(series) - 3)
     # test_size = len(series) - train_size
     train,test = series[:train_size], series[train_size:]
 
@@ -79,7 +79,7 @@ def train(filename, output_dir):
     loss_fn = nn.MSELoss()
     loader = data.DataLoader(data.TensorDataset(X_train, y_train), shuffle=False, batch_size=8)
 
-    n_epochs = 10000
+    n_epochs = 1500
     for epoch in range(n_epochs):
         model.train()
         for X_batch, y_batch in loader:
@@ -89,7 +89,7 @@ def train(filename, output_dir):
             loss.backward()
             optimizer.step()
         # Validation
-        if epoch % 50 != 0:
+        if epoch % 10 != 0:
             continue
         model.eval()
         with torch.no_grad():
@@ -104,9 +104,55 @@ def train(filename, output_dir):
     return
 
 
+def plot_set(m, analytical, lstm_results):
+
+    fig, ax = plt.subplots(1,1, figsize=(7,5))
+    
+    idxs = np.linspace(1,98,7, dtype=np.int16)
+    # idxs = [1,10,30,40,60,95]
+    couleurs = plt.cm.inferno(np.linspace(0,1,len(idxs)+1))
+    for i,idx in enumerate(idxs):
+        ax.loglog(m, analytical[idx], c=couleurs[i], lw=1, ls="-.")
+        ax.loglog(m, lstm_results[idx], c=couleurs[i])
+
+    # ax.set_xlim(m[0, 0], m[0, -1])
+    ax.set_ylim(1.e-6, 1.e3)
+    ax.set_xlabel(r"$m$", math_fontfamily='dejavuserif')
+    ax.set_ylabel(r"$N\,\left(m,t\right)\,\cdot\,m^2$", math_fontfamily='dejavuserif')
+    ax.set_title(r"Neural Network -- Constant Kernel: $M\left( m, m'\right) = 1$", math_fontfamily='dejavuserif')
+    fig.tight_layout()
+
+    imgname = f"plots/toymodel.png"
+    plt.savefig(os.path.join(model_dir,imgname), dpi=300)
+    plt.close()
+    # plt.show()
+
+
+def plot_everything(m, analytical, lstm_results):
+    
+    for idx in range(100):
+        fig, ax = plt.subplots(1,1, figsize=(7,5))
+        
+        ax.loglog(m, analytical[idx], c="k", lw=1, ls="-.")
+        ax.loglog(m, lstm_results[idx], c="tab:blue")
+
+        # ax.set_xlim(m[0, 0], m[0, -1])
+        ax.set_ylim(1.e-30, 1.e3)
+        ax.set_xlabel(r"$m$", math_fontfamily='dejavuserif')
+        ax.set_ylabel(r"$N\,\left(m,t\right)\,\cdot\,m^2$", math_fontfamily='dejavuserif')
+        ax.set_title(f"Neural Network -- Constant Kernel: t = {idx} / 100", math_fontfamily='dejavuserif')
+        fig.tight_layout()
+
+        imgname = f"plots/toymodel_t{idx}.png"
+        plt.savefig(os.path.join(model_dir,imgname))
+        plt.close()
+        # plt.show()
+
 def test(model_dir, best=False):
     """
     """
+    start = time.time()
+
     best_model = os.path.join(model_dir, "best/toymodel.pt")
     test_model = os.path.join(model_dir, "toymodel.pt")
 
@@ -131,30 +177,18 @@ def test(model_dir, best=False):
     lstm_results[0] = np.log10(initial)
 
     with torch.no_grad():
-        for i in range(65,100):
+        for i in range(100):
             lstm_results[i] = model(torch.tensor(np.log10(analytical[i-1]).reshape(1,-1)))
             # lstm_results[i] = model(torch.tensor(lstm_results[i-1].reshape(1,-1)))
 
     lstm_results = 10**(lstm_results)
     lstm_results[lstm_results<1e-30] = 0.
 
-    for idx in range(65,100):
-        fig, ax = plt.subplots(1,1, figsize=(7,5))
+    end = time.time()
+    print(f"Elapsed time: {end-start} s")
 
-        ax.loglog(m, analytical[idx], c="k", lw=1, ls="-.")
-        ax.loglog(m, lstm_results[idx], c="b")
-
-        # ax.set_xlim(m[0, 0], m[0, -1])
-        ax.set_ylim(1.e-30, 1.e3)
-        ax.set_xlabel(r"$m$", math_fontfamily='dejavuserif')
-        ax.set_ylabel(r"$N\,\left(m,t\right)\,\cdot\,m^2$", math_fontfamily='dejavuserif')
-        ax.set_title(f"Neural Network -- Constant Kernel -- t = {idx} / 100", math_fontfamily='dejavuserif')
-        fig.tight_layout()
-
-        imgname = f"plots/toymodel_t{idx}.png"
-        plt.savefig(os.path.join(model_dir,imgname))
-        plt.close()
-    # plt.show()
+    # plot_everything(m,analytical,lstm_results)
+    plot_set(m,analytical,lstm_results)
 
 
     return
@@ -171,7 +205,7 @@ if __name__ == "__main__":
     filename = os.path.join(data_dir, "simple_dataset.h5")
 
     # train(filename, model_dir)
-    test(model_dir)
+    test(model_dir, best=True)
 
     end = time.time()
-    print(f"Elapsed time: {end-start} s")
+    print(f"Total elapsed time: {end-start} s")
