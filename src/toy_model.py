@@ -10,10 +10,7 @@ import torch.optim as optim
 import torch.utils.data as data
 
 from coag_kernels import *
-
-from matplotlib import pyplot as plt
-plt.rcParams['font.family'] = 'serif'
-plt.rcParams['lines.linewidth'] = 1.25
+from plotting import *
 
 
 
@@ -28,13 +25,19 @@ class ToyModel(nn.Module):
         self.lstm = nn.LSTM(input_size=self.input_size,
                             hidden_size=self.hidden_size,
                             batch_first=True,
-                            num_layers = 2,
+                            num_layers = 1,
                             dtype=torch.float64
                             )
+        # self.mlp = nn.Sequential(
+        #     nn.Linear(self.input_size, self.hidden_size, dtype=torch.float64),
+        #     nn.Linear(self.hidden_size, 2*self.hidden_size, dtype=torch.float64),
+        #     nn.Linear(2*self.hidden_size, self.hidden_size, dtype=torch.float64),
+        # )
         self.out = nn.Linear(self.hidden_size, self.output_size, dtype=torch.float64)
     
     def forward(self, x):
         x, _ = self.lstm(x)
+        # x = self.mlp(x)
         x = self.out(x)
         return x
 
@@ -55,15 +58,17 @@ def create_dataset(dataset, lookback):
     X,y = np.array(X), np.array(y)
     return torch.tensor(X), torch.tensor(y)
 
-def train(filename, output_dir):
+
+
+def train(filename, output_dir, kernel, retrain=False, best=False):
     f = h5py.File(filename, "r")
     # t      = f["simple_dataset"][:,0]
     series = f["simple_dataset"][:,1:]
     print(len(series))
 
-    train_size = int(len(series) - 3)
+    test_size = int(len(series) - 2)
     # test_size = len(series) - train_size
-    train,test = series[:train_size], series[train_size:]
+    train,test = series[:], series[test_size:]
 
     lookback = 1
     X_train , y_train = create_dataset(train, lookback)
@@ -75,11 +80,22 @@ def train(filename, output_dir):
     print(X_test.dtype, y_test.dtype)
 
     model = ToyModel()
+    if retrain:        
+        if best:
+            best_model = os.path.join(output_dir, f"best/toymodel_{kernel}.pt")
+            model.load_state_dict(torch.load(best_model))
+            print("Retraining best model.")
+        else:
+            test_model = os.path.join(output_dir, f"toymodel_{kernel}.pt")
+            model.load_state_dict(torch.load(test_model))
+            print("Retraining model.")
+
+
     optimizer = optim.Adam(model.parameters())
     loss_fn = nn.MSELoss()
-    loader = data.DataLoader(data.TensorDataset(X_train, y_train), shuffle=False, batch_size=8)
+    loader = data.DataLoader(data.TensorDataset(X_train, y_train), shuffle=False, batch_size=128)
 
-    n_epochs = 1500
+    n_epochs = 50000
     for epoch in range(n_epochs):
         model.train()
         for X_batch, y_batch in loader:
@@ -89,7 +105,7 @@ def train(filename, output_dir):
             loss.backward()
             optimizer.step()
         # Validation
-        if epoch % 10 != 0:
+        if epoch % 250 != 0:
             continue
         model.eval()
         with torch.no_grad():
@@ -97,64 +113,21 @@ def train(filename, output_dir):
             train_rmse = np.sqrt(loss_fn(y_pred, y_train))
             y_pred = model(X_test)
             test_rmse = np.sqrt(loss_fn(y_pred, y_test))
-        print("Epoch %d: train RMSE %.4f, test RMSE %.4f" % (epoch, train_rmse, test_rmse))
+        print("Epoch %d: train RMSE %.4f test RMSE %.4f" % (epoch, train_rmse, test_rmse))
 
-    torch.save(model.state_dict(), output_dir+"/toymodel.pt")
+    torch.save(model.state_dict(), output_dir+f"/toymodel_{kernel}.pt")
 
     return
 
 
-def plot_set(m, analytical, lstm_results):
 
-    fig, ax = plt.subplots(1,1, figsize=(7,5))
-    
-    idxs = np.linspace(1,98,7, dtype=np.int16)
-    # idxs = [1,10,30,40,60,95]
-    couleurs = plt.cm.inferno(np.linspace(0,1,len(idxs)+1))
-    for i,idx in enumerate(idxs):
-        ax.loglog(m, analytical[idx], c=couleurs[i], lw=1, ls="-.")
-        ax.loglog(m, lstm_results[idx], c=couleurs[i])
-
-    # ax.set_xlim(m[0, 0], m[0, -1])
-    ax.set_ylim(1.e-6, 1.e3)
-    ax.set_xlabel(r"$m$", math_fontfamily='dejavuserif')
-    ax.set_ylabel(r"$N\,\left(m,t\right)\,\cdot\,m^2$", math_fontfamily='dejavuserif')
-    ax.set_title(r"Neural Network -- Constant Kernel: $M\left( m, m'\right) = 1$", math_fontfamily='dejavuserif')
-    fig.tight_layout()
-
-    imgname = f"plots/toymodel.png"
-    plt.savefig(os.path.join(model_dir,imgname), dpi=300)
-    plt.close()
-    # plt.show()
-
-
-def plot_everything(m, analytical, lstm_results):
-    
-    for idx in range(100):
-        fig, ax = plt.subplots(1,1, figsize=(7,5))
-        
-        ax.loglog(m, analytical[idx], c="k", lw=1, ls="-.")
-        ax.loglog(m, lstm_results[idx], c="tab:blue")
-
-        # ax.set_xlim(m[0, 0], m[0, -1])
-        ax.set_ylim(1.e-30, 1.e3)
-        ax.set_xlabel(r"$m$", math_fontfamily='dejavuserif')
-        ax.set_ylabel(r"$N\,\left(m,t\right)\,\cdot\,m^2$", math_fontfamily='dejavuserif')
-        ax.set_title(f"Neural Network -- Constant Kernel: t = {idx} / 100", math_fontfamily='dejavuserif')
-        fig.tight_layout()
-
-        imgname = f"plots/toymodel_t{idx}.png"
-        plt.savefig(os.path.join(model_dir,imgname))
-        plt.close()
-        # plt.show()
-
-def test(model_dir, best=False):
+def test(model_dir, kernel, best=False):
     """
     """
     start = time.time()
 
-    best_model = os.path.join(model_dir, "best/toymodel.pt")
-    test_model = os.path.join(model_dir, "toymodel.pt")
+    best_model = os.path.join(model_dir, f"best/toymodel_{kernel}.pt")
+    test_model = os.path.join(model_dir, f"toymodel_{kernel}.pt")
 
     model = ToyModel()
     if best:
@@ -162,50 +135,67 @@ def test(model_dir, best=False):
         print("Testing best model.")
     else:
         model.load_state_dict(torch.load(test_model))
+        print("Testing model.")
     model.eval()
 
     m  = np.logspace(-12,4,100)
-    t  = np.logspace(-9,3,100)
     analytical = np.zeros((100,100))
     lstm_results = np.zeros((100,100))
+    lstm_onestep = np.zeros((100,100))
 
-    for i,x in enumerate(t):
-        analytical[i] = solution_constant_kernel(m,1.,1.,x)
+    if kernel == "constant":
+        t = np.logspace(-9,3,100)
+        for i,x in enumerate(t):
+            analytical[i] = solution_constant_kernel(m,1.,1.,x)
+    elif kernel == "linear":
+        t  = np.logspace(0,1.2,100)
+        for i,x in enumerate(t):
+            analytical[i] = solution_linear_kernel(m,1.,1.,x)
+
     analytical[analytical<1e-30] = 1e-30
 
     initial = analytical[0]
     lstm_results[0] = np.log10(initial)
+    lstm_onestep[0] = np.log10(initial)
 
     with torch.no_grad():
-        for i in range(100):
-            lstm_results[i] = model(torch.tensor(np.log10(analytical[i-1]).reshape(1,-1)))
-            # lstm_results[i] = model(torch.tensor(lstm_results[i-1].reshape(1,-1)))
+        for i in range(1,100):
+            lstm_onestep[i] = model(torch.tensor(np.log10(analytical[i-1]).reshape(1,-1)))
+            lstm_results[i] = model(torch.tensor(lstm_results[i-1].reshape(1,-1)))
 
     lstm_results = 10**(lstm_results)
     lstm_results[lstm_results<1e-30] = 0.
 
+    lstm_onestep = 10**(lstm_onestep)
+    lstm_onestep[lstm_onestep<1e-30] = 0.
+
     end = time.time()
     print(f"Elapsed time: {end-start} s")
 
-    # plot_everything(m,analytical,lstm_results)
-    plot_set(m,analytical,lstm_results)
-
+    plot_everything(m,analytical,lstm_results, kernel, model_dir, onestep=False)
+    plot_set(m,analytical,lstm_results, kernel, model_dir, onestep=False)
+    
+    plot_everything(m,analytical,lstm_onestep, kernel, model_dir, onestep=True)
+    plot_set(m,analytical,lstm_onestep, kernel, model_dir, onestep=True)
 
     return
 
 
+
 if __name__ == "__main__":
     start = time.time()
+
+    kernel = "constant"
 
     src_dir = os.path.dirname(os.path.abspath(__file__))
     main_dir = str(Path(src_dir).parents[0])
     data_dir = os.path.join(main_dir, "data")
     model_dir = os.path.join(main_dir, "models")
 
-    filename = os.path.join(data_dir, "simple_dataset.h5")
+    filename = os.path.join(data_dir, f"simple_dataset_{kernel}.h5")
 
-    # train(filename, model_dir)
-    test(model_dir, best=True)
+    train(filename, model_dir, kernel, retrain=True, best=True)
+    test(model_dir, kernel, best=False)
 
     end = time.time()
     print(f"Total elapsed time: {end-start} s")

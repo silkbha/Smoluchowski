@@ -48,20 +48,19 @@ def simple_dataset(output_dir):
     """ 
     """
     m  = np.logspace(-12,4,100)
-    t  = np.logspace(-9,3,100)
+    t  = np.logspace(0,1.2,100)
+    # t = np.logspace(-9,3,100)
 
     cols = len(m) + 1
     data = np.zeros((len(t), cols))
 
     for i,x in enumerate(t):
         data[i,0] = x
-        data[i,1:]  = solution_constant_kernel(m,1.,1.,x)
+        data[i,1:]  = solution_linear_kernel(m,1.,1.,x)
     data[data<1e-30] = 1e-30
     data = np.log10(data)
 
-    print(data[-1])
-
-    filename = f"{output_dir}/simple_dataset"
+    filename = f"{output_dir}/simple_dataset_linear"
     with h5py.File(filename+".h5", "w") as hf:
         hf.create_dataset("simple_dataset", data=data)
     print("Done and Saved!")
