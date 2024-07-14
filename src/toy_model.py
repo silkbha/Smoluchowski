@@ -121,7 +121,7 @@ def train(filename, output_dir, kernel, retrain=False, best=False):
 
 
 
-def test(model_dir, kernel, best=False):
+def test(model_dir, kernel, best=False, plot=True):
     """
     """
     start = time.time()
@@ -172,11 +172,12 @@ def test(model_dir, kernel, best=False):
     end = time.time()
     print(f"Elapsed time: {end-start} s")
 
-    plot_everything(m,analytical,lstm_results, kernel, model_dir, onestep=False)
-    plot_set(m,analytical,lstm_results, kernel, model_dir, onestep=False)
-    
-    plot_everything(m,analytical,lstm_onestep, kernel, model_dir, onestep=True)
-    plot_set(m,analytical,lstm_onestep, kernel, model_dir, onestep=True)
+    if plot:
+        plot_everything(m,analytical,lstm_results, kernel, model_dir, onestep=False)
+        plot_set(m,analytical,lstm_results, kernel, model_dir, onestep=False)
+        
+        plot_everything(m,analytical,lstm_onestep, kernel, model_dir, onestep=True)
+        plot_set(m,analytical,lstm_onestep, kernel, model_dir, onestep=True)
 
     return
 
@@ -185,7 +186,7 @@ def test(model_dir, kernel, best=False):
 if __name__ == "__main__":
     start = time.time()
 
-    kernel = "constant"
+    kernel = "linear"
 
     src_dir = os.path.dirname(os.path.abspath(__file__))
     main_dir = str(Path(src_dir).parents[0])
@@ -194,8 +195,8 @@ if __name__ == "__main__":
 
     filename = os.path.join(data_dir, f"simple_dataset_{kernel}.h5")
 
-    train(filename, model_dir, kernel, retrain=True, best=True)
-    test(model_dir, kernel, best=False)
+    # train(filename, model_dir, kernel, retrain=True, best=True)
+    test(model_dir, kernel, best=True, plot=False)
 
     end = time.time()
     print(f"Total elapsed time: {end-start} s")
