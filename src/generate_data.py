@@ -1,84 +1,78 @@
-import time
-import os
-from pathlib import Path
-import h5py
-import itertools
-
 import numpy as np
-from coag_kernels import *
+from matplotlib import pyplot as plt
+from preprocessing import generate_inputs_basic as generate_inputs
+from preprocessing import r_to_m
+from preprocessing import MRN
+
+# Pick one
+from podolak import evolve_simple as evolve
+# from podolak import evolve_modified as evolve
 
 
 
-def parameter_sweep(output_dir, kernel):
-    """ 
+
+def parameter_sweep():
     """
-    # Dictionary to map input keyword to corresponding function
-    kernel_dict = {"constant": solution_constant_kernel, "linear": solution_linear_kernel}
+    """
+    nbins   = 100
 
-    # Define mass grid: stays constant throughout simulation
-    m  = np.logspace(-12,4,100)
-
-    # Floating point parameters to sweep
-    a  = np.array([1.]) # np.linspace(0.1,10,50) #
-    S0 = np.logspace(-4,3,200)
-    t  = np.logspace(-9,3,20000)
+    Rho_gas = np.logspace(0.1,10,100)
+    C_s     = np.logspace(0.1,1,100)
     
-    par_space = len(a)*len(S0)*len(t)
-    print("Param space size:", par_space)
-
-    print("Creating iterable list of parameter value combinations. This may take a while...")
-    inputs = itertools.product(a, S0, t)
-
-    print("Sweeping parameter space...")
-    cols = len(m) + 3
-    data = np.zeros((par_space, cols))
-    for i,input in enumerate(inputs):
-        data[i,0:3] = np.array([*input])
-        data[i,3:]  = kernel_dict[kernel](m,*input)
+    for rho_gas in Rho_gas:
+        for c_s in C_s:
+            for idxmin0 in range(nbins):
+                for idxmax0 in range(nbins):
+                    sizes,masses,densities,velos,T_gas = generate_inputs(nbins,idxmin0,idxmax0,rho_gas,c_s)
+                    densities_new = evolve(sizes,masses, densities,velos,T_gas)
+    #TODO save, track, test
     
-    filename = f"{output_dir}/data_{kernel}"
-    with h5py.File(filename+".h5", "w") as hf:
-        hf.create_dataset(f"data_{kernel}", data=data)
-    print("Done and Saved!")
     return
 
-
-
-def simple_dataset(output_dir):
-    """ 
+def test(nbins,steps):
+    """ TODO track and check total mass conservation
+        TODO save, track, plot density evolution
     """
-    m  = np.logspace(-12,4,100)
-    t  = np.logspace(0,1.2,100)
-    # t = np.logspace(-9,3,100)
+    # nbins    = 100
+    imin     = 1
+    imax     = 2
+    rho_dust = 1e1
 
-    cols = len(m) + 1
-    data = np.zeros((len(t), cols))
+    sizes     = np.logspace(-3,-1,nbins)
+    # sizes     = np.linspace(1e-5,5e-5,nbins)
+    masses    = r_to_m(sizes,rho_dust)
+    
+    velos  = np.zeros((len(masses),3))
+    T_gas  = 204
 
-    for i,x in enumerate(t):
-        data[i,0] = x
-        data[i,1:]  = solution_linear_kernel(m,1.,1.,x)
-    data[data<1e-30] = 1e-30
-    data = np.log10(data)
+    densities = np.zeros((steps,nbins))
+    densities[0] = MRN(sizes, imin,imax,rho_dust)
+    # sizes,masses, densities[0], velos, T_gas = generate_inputs(nbins,idxmin0,idxmax0,rho_gas,c_s)
 
-    filename = f"{output_dir}/simple_dataset_linear"
-    with h5py.File(filename+".h5", "w") as hf:
-        hf.create_dataset("simple_dataset", data=data)
-    print("Done and Saved!")
-    return
+    for t in range(steps-1):
+        densities[t+1] = evolve(sizes,masses, densities[t],velos,T_gas)
+    
+    return densities, masses, sizes
 
 
-if __name__ == "__main__":
-    start = time.time()
 
-    src_dir = os.path.dirname(os.path.abspath(__file__))
-    main_dir = str(Path(src_dir).parents[0])
-    output_dir = os.path.join(main_dir, "data")
-    Path(output_dir).mkdir(parents=True, exist_ok=True)
-    print(f"Saving data in directory: {output_dir}")
+if __name__=="__main__":
 
-    # parameter_sweep(output_dir, "constant")
-    # parameter_sweep(output_dir, "linear")
-    simple_dataset(output_dir)
+    nbins   = 100
+    steps   = 2
 
-    end = time.time()
-    print(f"Elapsed time: {end-start} s")
+    densities,masses,sizes = test(nbins,steps)
+    colors = plt.cm.viridis(np.linspace(0,1,steps))
+    
+    fig, ax = plt.subplots(1,1, figsize=(7,5))
+    for i in range(steps):
+        y = densities[i] * masses * sizes
+        # fig, ax = plt.subplots(1,1, figsize=(7,5))
+        ax.plot(sizes,y, color=colors[i])
+        ax.set_xscale("log")
+        ax.set_yscale("log")
+        ax.set_xlabel(r"a [cm]")
+        ax.set_ylabel(r"m $\cdot$ a $\cdot$ f(a) [g cm$^{-3}$]")
+    plt.show()
+    
+    print("Done. Goodbye...")
