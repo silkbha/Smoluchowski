@@ -1,6 +1,6 @@
 # Brute-Force Numerical Dust Size Evolution
 
-Numerical "brute-force" implementation of a Smoluchowski-like equation for coagulation and fragmentation of dust grains in planet-forming disks.
+Incomplete numerical "brute-force" implementation of a Smoluchowski-like equation for coagulation and fragmentation of dust grains in planet-forming disks.
 
 ### Jan 2024 : Start Simple
 
